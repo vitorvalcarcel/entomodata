@@ -3,24 +3,42 @@
 <head>
     <title>EntomoData</title>
     <meta charset="UTF-8">
-
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    
+    <script>
+        function mudarTamanhoPagina(select) {
+            window.location.href = "/?page=0&size=" + select.value;
+        }
+    </script>
 </head>
 <body>
 
-    <h1>Minha Coleção Entomológica</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Minha Coleção Entomológica</h1>
+        
+        <div>
+            <label>Itens por página:</label>
+            <select onchange="mudarTamanhoPagina(this)" style="padding: 5px; border-radius: 4px;">
+                <option value="50" th:selected="${pageSize == 50}">50</option>
+                <option value="100" th:selected="${pageSize == 100}">100</option>
+                <option value="1000" th:selected="${pageSize == 1000}">1000</option>
+                <option value="10000" th:selected="${pageSize == 10000}">10000</option>
+            </select>
+        </div>
+    </div>
 
-    <a href="/novo">
-        <button>
-            + Novo Exemplar
-        </button>
-    </a>
-
-    <a href="/importar" style="margin-left: 10px;">
-        <button class="btn-novo" style="background-color: #8e44ad;">
-            📂 Importar Excel
-        </button>
-    </a>
+    <div style="margin-bottom: 15px;">
+        <a href="/novo">
+            <button class="btn-novo">Novo Exemplar</button>
+        </a>
+        <a href="/importar" style="margin-left: 10px;">
+            <button class="btn-novo" style="background-color: #8e44ad;">📂 Importar Excel</button>
+        </a>
+        
+        <span style="float: right; margin-top: 10px; font-weight: bold; color: #555;">
+            Total de Registros: <span th:text="${totalItems}">0</span>
+        </span>
+    </div>
 
     <div class="tabela-container">
         <table>
@@ -39,10 +57,8 @@
                     <th>Autor</th>
                     <th>Determinador</th>
                     <th>Planta Assoc.</th>
-                    
                     <th>Gaveta</th>
                     <th>Caixa</th>
-                    
                     <th>País</th>
                     <th>Estado</th>
                     <th>Cidade</th>
@@ -51,7 +67,6 @@
                     <th>Bioma</th>
                     <th>Lat</th>
                     <th>Long</th>
-                    
                     <th>Coletor</th>
                     <th>Data</th>
                     <th>Horário</th>
@@ -59,7 +74,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="abelha : ${listaDeAbelhas}">
+                <tr th:each="abelha : ${listaDeAbelhas.content}">
                     <td th:text="${abelha.cod}"></td>
                     <td th:text="${abelha.especie}"></td>
                     <td th:text="${abelha.sexo}"></td>
@@ -73,10 +88,8 @@
                     <td th:text="${abelha.autor}"></td>
                     <td th:text="${abelha.determinador}"></td>
                     <td th:text="${abelha.especieVegetalAssociada}"></td>
-
                     <td th:text="${abelha.gaveta}"></td>
                     <td th:text="${abelha.caixa}"></td>
-
                     <td th:text="${abelha.pais}"></td>
                     <td th:text="${abelha.estado}"></td>
                     <td th:text="${abelha.cidade}"></td>
@@ -85,7 +98,6 @@
                     <td th:text="${abelha.bioma}"></td>
                     <td th:text="${abelha.latitude}"></td>
                     <td th:text="${abelha.longitude}"></td>
-
                     <td th:text="${abelha.coletor}"></td>
                     <td th:text="${abelha.data}"></td>
                     <td th:text="${abelha.horarioColeta}"></td>
@@ -94,6 +106,22 @@
             </tbody>
         </table>
     </div>
+
+    <div style="margin-top: 20px; text-align: center;" th:if="${totalPages > 1}">
+        
+        <a th:if="${currentPage > 0}" 
+           th:href="@{/(page=${currentPage - 1}, size=${pageSize})}" 
+           class="btn" style="background-color: #ddd; padding: 8px 15px;">&laquo; Anterior</a>
+        
+        <span style="margin: 0 15px; font-weight: bold;">
+            Página <span th:text="${currentPage + 1}">1</span> de <span th:text="${totalPages}">10</span>
+        </span>
+
+        <a th:if="${currentPage < totalPages - 1}" 
+           th:href="@{/(page=${currentPage + 1}, size=${pageSize})}" 
+           class="btn" style="background-color: #ddd; padding: 8px 15px;">Próximo &raquo;</a>
+    </div>
+    <br><br>
 
 </body>
 </html>

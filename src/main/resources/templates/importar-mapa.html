@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mapear Colunas</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <h1>Vincular Colunas</h1>
+    
+    <p>Arquivo: <strong th:text="${nomeArquivoSalvo}"></strong></p>
+    <p>Indique qual coluna do Excel corresponde a cada campo do sistema.</p>
+
+    <form th:action="@{/importar/finalizar}" method="post">
+        
+        <input type="hidden" name="nomeArquivo" th:value="${nomeArquivoSalvo}">
+
+        <div class="grupo-campos">
+            <table style="width: 100%; min-width: auto;">
+                <thead>
+                    <tr>
+                        <th>Campo do Sistema</th>
+                        <th>Coluna do seu Excel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="campo : ${camposSistema}">
+                        <td>
+                            <strong th:text="${campo}"></strong>
+                        </td>
+                        <td>
+                            <select th:name="${campo}" style="width: 100%; padding: 5px;">
+                                <option value="">-- Ignorar este campo --</option>
+                                
+                                <option th:each="coluna : ${colunasExcel}" 
+                                        th:value="${coluna}" 
+                                        th:text="${coluna}">
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button type="submit" class="btn-salvar">Finalizar Importação</button>
+        <a href="/importar" class="btn-cancelar">Cancelar</a>
+    </form>
+</body>
+</html>
