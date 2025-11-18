@@ -1,22 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Cadastro Completo de Exemplar</title>
+    <title>Cadastro Completo</title>
     <meta charset="UTF-8">
-    
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
 </head>
 <body>
+
     <h1>Cadastro de Exemplar</h1>
 
     <form th:action="@{/salvar}" th:object="${exemplar}" method="post">
-        
+
         <div class="grupo-campos">
             <span class="titulo-grupo">Identificação Única</span>
+            
             <label>Código (ID):</label>
             <input type="text" th:field="*{cod}" placeholder="Ex: A-0001" required>
         </div>
-        
-        <button type="submit" class="btn-salvar">Salvar Exemplar</button>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Taxonomia</span>
+            
+            <label>Família:</label> <input type="text" th:field="*{familia}"> <br>
+            <label>Subfamília:</label> <input type="text" th:field="*{subfamilia}"> <br>
+            <label>Tribo:</label> <input type="text" th:field="*{tribo}"> <br>
+            <label>Subtribo:</label> <input type="text" th:field="*{subtribo}"> <br>
+            <label>Gênero:</label> <input type="text" th:field="*{genero}"> <br>
+            <label>Subgênero:</label> <input type="text" th:field="*{subgenero}"> <br>
+            <label>Espécie:</label> <input type="text" th:field="*{especie}"> <br>
+            <label>Subespécie:</label> <input type="text" th:field="*{subespecie}"> <br>
+            <label>Autor:</label> <input type="text" th:field="*{autor}"> <br>
+            <label>Determinador:</label> <input type="text" th:field="*{determinador}"> <br>
+            <label>Sexo:</label> <input type="text" th:field="*{sexo}"> <br>
+            <label>Planta Associada:</label> <input type="text" th:field="*{especieVegetalAssociada}">
+        </div>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Armazenamento</span>
+            <label>Gaveta:</label> <input type="text" th:field="*{gaveta}"> <br>
+            <label>Caixa:</label> <input type="text" th:field="*{caixa}">
+        </div>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Localização</span>
+            
+            <label>País:</label> <input type="text" th:field="*{pais}"> <br>
+            <label>Estado:</label> <input type="text" th:field="*{estado}"> <br>
+            <label>Cidade:</label> <input type="text" th:field="*{cidade}"> <br>
+            <label>Localidade:</label> <input type="text" th:field="*{localidade}"> <br>
+            <label>Proprietário:</label> <input type="text" th:field="*{proprietarioDoLocalDeColeta}"> <br>
+            <label>Bioma:</label> <input type="text" th:field="*{bioma}"> <br>
+            <label>Latitude:</label> <input type="text" th:field="*{latitude}"> <br>
+            <label>Longitude:</label> <input type="text" th:field="*{longitude}">
+        </div>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Coleta</span>
+            
+            <label>Coletor:</label> <input type="text" th:field="*{coletor}"> <br>
+            <label>Método:</label> <input type="text" th:field="*{metodoDeAquisicao}"> <br>
+            <label>Data:</label> <input type="text" th:field="*{data}" placeholder="DD/MM/AAAA"> <br>
+            <label>Horário:</label> <input type="text" th:field="*{horarioColeta}">
+        </div>
+
+        <button type="submit" class="btn-salvar">Salvar Tudo</button>
         <a href="/" class="btn-cancelar">Cancelar</a>
 
     </form>
+    <br><br>
 </body>
+</html>
