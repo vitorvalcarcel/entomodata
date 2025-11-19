@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Erro de Importação</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+    <div class="header-container" style="border-left: 5px solid #e74c3c;">
+        <h1 style="color: #c0392b;">⚠️ Importação Cancelada</h1>
+        <span style="color: #c0392b; font-weight: bold;">Códigos duplicados encontrados</span>
+    </div>
+    
+    <div class="grupo-campos">
+        <p style="margin-top: 0; color: #555;">
+            A importação foi interrompida porque a sua planilha contém <strong>códigos de exemplar repetidos</strong>. 
+            Isso pode causar inconsistência nos dados.
+        </p>
+        <p style="color: #7f8c8d; font-size: 14px;">
+            Por favor, corrija as linhas abaixo na sua planilha Excel e tente importar novamente.
+        </p>
+    </div>
+
+    <div class="card-tabela">
+        <div class="tabela-container">
+            <table style="min-width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="width: 30%; color: #c0392b;">Código Duplicado</th>
+                        <th style="width: 70%;">Encontrado nas Linhas do Excel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${duplicatas}">
+                        <td>
+                            <strong th:text="${item.key}" style="font-size: 1.1em;">A001</strong>
+                        </td>
+                        <td>
+                            <span th:each="linha, stat : ${item.value}" class="total-badge" 
+                                  style="margin-right: 5px; background-color: #fce4e4; border-color: #fadbd8; color: #c0392b;">
+                                Linha <span th:text="${linha}">2</span>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/importar" class="btn btn-paginacao">Voltar e Tentar Outro Arquivo</a>
+    </div>
+    
+    <br><br>
+</body>
+</html>

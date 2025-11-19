@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import com.vitor.entomodata.service.ImportacaoService;
+import com.vitor.entomodata.exception.DuplicidadeException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,7 +44,6 @@ public class ImportacaoController {
             List<String> colunasDoExcel = service.lerCabecalhos(arquivo);
             
             // Definir quais campos do SISTEMA queremos preencher
-            // Estes nomes devem bater com o switch/case no Service
             List<String> camposDoSistema = Arrays.asList(
                 "cod", 
                 "familia", "subfamilia", "tribo", "subtribo", 
@@ -69,7 +69,7 @@ public class ImportacaoController {
 
     // Recebe o Mapa (De-Para) e finaliza a importação
     @PostMapping("/importar/finalizar")
-    public String finalizarImportacao(@RequestParam Map<String, String> todosOsParametros) {
+    public String finalizarImportacao(@RequestParam Map<String, String> todosOsParametros, Model model) {
         String nomeArquivo = todosOsParametros.get("nomeArquivo");
         
         // Remove o nomeArquivo do mapa, deixando só os pares "campo -> coluna"
@@ -78,6 +78,12 @@ public class ImportacaoController {
         try {
             service.processarImportacao(nomeArquivo, todosOsParametros);
             return "redirect:/?sucesso=true";
+            
+        } catch (DuplicidadeException e) {
+            // SE ENCONTRAR DUPLICATAS: Mostra a tela de erro
+            model.addAttribute("duplicatas", e.getDuplicatas());
+            return "importar-erro";
+            
         } catch (IOException e) {
             return "redirect:/importar?erro=" + e.getMessage();
         }
