@@ -22,10 +22,11 @@ public class ExemplarController {
             Model model,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "cod") String sort, // Campo padrão de ordenação
+            @RequestParam(defaultValue = "asc") String dir,  // Direção padrão
             Exemplar filtro
     ) {
-        buscarDados(model, page, size, filtro);
-        
+        buscarDados(model, page, size, sort, dir, filtro);
         return "index";
     }
 
@@ -33,16 +34,17 @@ public class ExemplarController {
     public String filtrarExemplares(
             Model model,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "cod") String sort,
+            @RequestParam(defaultValue = "asc") String dir,
             Exemplar filtro
     ) {
-        buscarDados(model, page, size, filtro);
-        
+        buscarDados(model, page, size, sort, dir, filtro);
         return "index :: tabela-resultados";
     }
 
-    private void buscarDados(Model model, int page, int size, Exemplar filtro) {
-        Page<Exemplar> paginaDeAbelhas = service.buscarTodosPaginado(page, size, filtro);
+    private void buscarDados(Model model, int page, int size, String sort, String dir, Exemplar filtro) {
+        Page<Exemplar> paginaDeAbelhas = service.buscarTodosPaginado(page, size, sort, dir, filtro);
         
         model.addAttribute("listaDeAbelhas", paginaDeAbelhas);
         model.addAttribute("currentPage", page);
@@ -50,6 +52,8 @@ public class ExemplarController {
         model.addAttribute("totalPages", paginaDeAbelhas.getTotalPages());
         model.addAttribute("totalItems", paginaDeAbelhas.getTotalElements());
         model.addAttribute("filtro", filtro);
+        model.addAttribute("sortField", sort);
+        model.addAttribute("sortDir", dir);
     }
 
     @GetMapping("/novo")

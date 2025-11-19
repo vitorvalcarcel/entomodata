@@ -158,6 +158,8 @@ button, .btn {
 .tabela-container { width: 100%; overflow-x: auto; }
 
 table { border-collapse: collapse; width: 100%; min-width: 3000px; }
+
+/* Cabeçalho da Tabela */
 th {
     background-color: #f8f9fa;
     color: #555;
@@ -169,7 +171,19 @@ th {
     border-bottom: 2px solid #e9ecef;
     border-right: 1px solid #f1f1f1;
     text-align: left;
+    position: relative;
 }
+
+/* Nova classe para colunas ordenáveis */
+th.sortable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+th.sortable:hover {
+    background-color: #e9ecef;
+    color: #3498db;
+}
+
 td {
     padding: 12px 10px;
     border-bottom: 1px solid #f1f1f1;
@@ -180,68 +194,27 @@ td {
 }
 tr:hover td { background-color: #f8fbfd; }
 
-/* === FORMULÁRIO DE CADASTRO (GRID) === */
-.grupo-campos {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    padding: 25px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-}
-
-.titulo-grupo {
-    font-weight: bold;
-    color: #2980b9;
-    margin-bottom: 20px;
-    display: block;
-    font-size: 1.1em;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-}
-
-.grid-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.form-item {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-item label {
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #34495e;
-    font-size: 14px;
-}
-
-.form-item input, 
-.form-item select {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    width: 100%; 
-    box-sizing: border-box;
-}
-
-.form-item input:focus, 
-.form-item select:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
+/* === OUTROS === */
 .seletor-pagina { padding: 8px; border: 1px solid #ddd; border-radius: 6px; background-color: #fff; }
 .total-badge { background-color: #eef2f7; color: #2c3e50; padding: 5px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #dae1e7; }
 
-input[type="file"] {
+/* Inputs gerais */
+.grupo-campos input[type="text"], 
+.grupo-campos input[type="date"], 
+.grupo-campos input[type="file"], 
+.grupo-campos select {
     padding: 10px;
     width: 100%;
+    max-width: 400px;
+    margin-bottom: 15px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    background-color: #f9f9f9;
 }
+.grupo-campos { padding: 20px; }
+
+/* Grid Form para Cadastro */
+.grid-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+.form-item { display: flex; flex-direction: column; }
+.form-item label { margin-bottom: 8px; font-weight: 600; color: #34495e; font-size: 14px; }
+.form-item input, .form-item select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
+.form-item input:focus, .form-item select:focus { border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
