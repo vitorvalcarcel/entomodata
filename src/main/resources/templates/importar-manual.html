@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Resolução Manual</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>👆 Escolha Manual <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Resolva os conflitos</span></h1>
+    </div>
+
+    <div class="grupo-campos">
+        <p style="margin: 0; color: #555;">
+            Abaixo estão listados os códigos duplicados. Para cada um, a <strong>última ocorrência</strong> já vem selecionada por padrão. 
+            Os campos que apresentam <span class="dado-divergente" style="padding: 0 5px; border-radius: 3px;">diferenças</span> entre as linhas estão destacados.
+        </p>
+    </div>
+
+    <form th:action="@{/importar/processar-manual}" method="post">
+        
+        <input type="hidden" name="nomeArquivo" th:value="${nomeArquivoSalvo}">
+        <th:block th:each="entry : ${mapaAnterior}">
+            <input type="hidden" th:name="${entry.key}" th:value="${entry.value}">
+        </th:block>
+
+        <div th:each="entry : ${conflitos}" class="conflito-container">
+            <div class="conflito-header">
+                <span>Código em conflito: <strong th:text="${entry.key}" style="font-size: 1.2em;">A001</strong></span>
+                <span class="total-badge" style="background-color: #fef5e7; color: #d35400; border-color: #fdebd0;">
+                    <span th:text="${entry.value.size()}">2</span> ocorrências
+                </span>
+            </div>
+            
+            <div class="conflito-body">
+                <label th:each="opcao, stat : ${entry.value}" class="opcao-linha">
+                    
+                    <input type="radio" 
+                           th:name="'escolha_' + ${entry.key}" 
+                           th:value="${opcao.linha}" 
+                           th:checked="${stat.last}"
+                           required>
+                    
+                    <div style="width: 100%;">
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #2980b9; font-size: 14px;">Linha <span th:text="${opcao.linha}"></span> do Excel</strong>
+                        </div>
+                        
+                        <div class="grid-dados">
+                            <div th:each="dado : ${opcao.dados}" 
+                                 class="item-dado"
+                                 th:classappend="${divergencias.get(entry.key).contains(dado.key)} ? 'dado-divergente' : ''">
+                                
+                                <span class="label-dado" th:text="${dado.key}">Espécie</span>
+                                <span class="valor-dado" th:text="${dado.value}">Apis</span>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; justify-content: space-between;">
+            <a href="/importar" class="btn btn-paginacao" style="color: #e74c3c;">Cancelar</a>
+            <button type="submit" class="btn btn-salvar">Confirmar e Importar Selecionados</button>
+        </div>
+
+    </form>
+    <br><br>
+</body>
+</html>

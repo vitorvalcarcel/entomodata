@@ -218,3 +218,62 @@ tr:hover td { background-color: #f8fbfd; }
 .form-item label { margin-bottom: 8px; font-weight: 600; color: #34495e; font-size: 14px; }
 .form-item input, .form-item select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
 .form-item input:focus, .form-item select:focus { border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+
+/* === NOVOS ESTILOS DE CONFLITO === */
+.conflito-container {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-left: 5px solid #f39c12;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.conflito-header {
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.conflito-body { padding: 15px; }
+.opcao-linha {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px;
+    border: 1px solid #eee;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    background-color: #fff;
+}
+.opcao-linha:hover { background-color: #f8fbff; border-color: #b6d4fe; }
+.opcao-linha input[type="radio"] { margin-top: 5px; margin-right: 15px; transform: scale(1.3); accent-color: #3498db; }
+
+.grid-dados {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+.item-dado {
+    font-size: 13px;
+    color: #555;
+    background: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+/* DESTAQUE PARA DADOS DIVERGENTES */
+.dado-divergente {
+    background-color: #fff5f5; /* Fundo avermelhado */
+    border-color: #ffcccc;
+    color: #c0392b;
+    font-weight: 600;
+}
+.label-dado { font-weight: 700; color: #2c3e50; text-transform: capitalize; font-size: 11px; display: block; margin-bottom: 2px; }
+.valor-dado { color: #2980b9; }
+.dado-divergente .valor-dado { color: #c0392b; }
