@@ -391,3 +391,64 @@ tr:hover td { background-color: #f8fbfd; }
 .btn-opcao:hover { border-color: #3498db; background: #f0f8ff; color: #2980b9; transform: translateY(-1px); }
 .btn-opcao.selecionado { background: #3498db; color: white; border-color: #2980b9; }
 .btn-opcao.indisponivel { display: none; }
+
+/* === INPUTS TRAVADOS (EDITAR) === */
+.input-travado {
+    background-color: #f4f6f8;
+    color: #888;
+    border-color: #ddd;
+    cursor: not-allowed;
+}
+
+.input-travado-fixo {
+    background-color: #eee;
+    font-weight: bold;
+    color: #555;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+.input-editavel {
+    background-color: #fff;
+    border-color: #3498db;
+    color: #333;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-item-lockable {
+    display: flex;
+    flex-direction: column;
+}
+.form-item-lockable label { margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #555; }
+
+.wrapper-input { position: relative; display: flex; align-items: center; }
+.wrapper-input input[type="text"] { padding-right: 40px; }
+
+.btn-toggle-edit {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 30px;
+}
+
+.btn-toggle-edit input { display: none; }
+
+.btn-toggle-edit span::after {
+    content: '🔒'; 
+    font-size: 16px;
+    opacity: 0.5;
+    filter: grayscale(100%);
+    transition: all 0.2s;
+}
+
+.btn-toggle-edit input:checked + span::after {
+    content: '✏️'; 
+    opacity: 1;
+    filter: none;
+    transform: scale(1.2);
+}

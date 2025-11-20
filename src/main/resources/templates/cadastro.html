@@ -1,31 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Cadastro Completo</title>
+    <title>Novo Cadastro</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
 </head>
 <body>
 
     <div class="header-container">
-        <h1>
-            <span th:text="${edicao} ? '✏️ Editar Exemplar' : '📝 Cadastro de Exemplar'"></span> 
-            <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Registro</span>
-        </h1>
+        <h1>📝 Novo Exemplar <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Cadastro Limpo</span></h1>
     </div>
 
     <form th:action="@{/salvar}" th:object="${exemplar}" method="post">
-        
-        <input type="hidden" name="isEdit" th:value="${edicao}">
 
         <div class="grupo-campos">
             <span class="titulo-grupo">Identificação Única</span>
             <div class="grid-form">
                 <div class="form-item">
                     <label>Código (ID):</label>
-                    <input type="text" th:field="*{cod}" placeholder="Ex: A-0001" required 
-                           th:readonly="${edicao}" 
-                           th:style="${edicao} ? 'background-color: #eee; cursor: not-allowed;' : ''">
+                    <input type="text" th:field="*{cod}" placeholder="Ex: A-0001" required>
                 </div>
             </div>
         </div>
@@ -33,13 +26,13 @@
         <div class="grupo-campos">
             <span class="titulo-grupo">Taxonomia</span>
             <div class="grid-form">
+                <div class="form-item"><label>Espécie:</label><input type="text" th:field="*{especie}"></div>
                 <div class="form-item"><label>Família:</label><input type="text" th:field="*{familia}"></div>
                 <div class="form-item"><label>Subfamília:</label><input type="text" th:field="*{subfamilia}"></div>
                 <div class="form-item"><label>Tribo:</label><input type="text" th:field="*{tribo}"></div>
                 <div class="form-item"><label>Subtribo:</label><input type="text" th:field="*{subtribo}"></div>
                 <div class="form-item"><label>Gênero:</label><input type="text" th:field="*{genero}"></div>
                 <div class="form-item"><label>Subgênero:</label><input type="text" th:field="*{subgenero}"></div>
-                <div class="form-item"><label>Espécie:</label><input type="text" th:field="*{especie}"></div>
                 <div class="form-item"><label>Subespécie:</label><input type="text" th:field="*{subespecie}"></div>
                 <div class="form-item"><label>Autor:</label><input type="text" th:field="*{autor}"></div>
                 <div class="form-item"><label>Determinador:</label><input type="text" th:field="*{determinador}"></div>
@@ -80,9 +73,9 @@
             </div>
         </div>
 
-        <div style="margin-bottom: 40px; display: flex; align-items: center;">
-            <button type="submit" class="btn btn-salvar">Salvar Tudo</button>
+        <div style="margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between;">
             <a href="/" class="btn btn-cancelar">Cancelar</a>
+            <button type="submit" class="btn btn-salvar">Salvar Novo</button>
         </div>
 
     </form>

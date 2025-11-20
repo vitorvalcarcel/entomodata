@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Exemplar</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <script>
+        // A função permanece a mesma, controlando o readonly e o estilo
+        function toggleEdit(checkbox) {
+            let inputId = checkbox.getAttribute('data-target-id');
+            let input = document.getElementById(inputId);
+            
+            if (checkbox.checked) {
+                input.readOnly = false;
+                input.classList.remove('input-travado');
+                input.classList.add('input-editavel');
+                input.focus();
+            } else {
+                input.readOnly = true;
+                input.classList.remove('input-editavel');
+                input.classList.add('input-travado');
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div class="header-container" style="border-left: 5px solid #f39c12;">
+        <h1 style="color: #e67e22;">✏️ Editar Exemplar <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Modo de Alteração</span></h1>
+    </div>
+
+    <form th:action="@{/editar/revisar}" th:object="${exemplar}" method="post">
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Identificação (Imutável)</span>
+            <div class="grid-form">
+                <div class="form-item">
+                    <label>Código (ID):</label>
+                    <input type="text" th:field="*{cod}" readonly class="input-travado-fixo">
+                </div>
+            </div>
+        </div>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Taxonomia</span>
+            <div class="grid-form">
+                <th:block th:each="campo : ${ {'Espécie:especie', 'Família:familia', 'Gênero:genero', 'Sexo:sexo', 'Tribo:tribo', 'Subtribo:subtribo', 'Subgênero:subgenero', 'Subespécie:subespecie', 'Autor:autor', 'Determinador:determinador', 'Planta Assoc.:especieVegetalAssociada'} }">
+                    <div class="form-item-lockable" th:with="label=${campo.split(':')[0]}, id=${campo.split(':')[1]}">
+                        <label th:text="${label}"></label>
+                        <div class="wrapper-input">
+                            <input type="text" th:id="${id}" th:field="*{__${id}__}"
+                                   th:classappend="${(exemplar.__${id}__ ?: '') != (original.__${id}__ ?: '')} ? 'input-editavel' : 'input-travado'"
+                                   th:readonly="${(exemplar.__${id}__ ?: '') == (original.__${id}__ ?: '')}"
+                                   th:attr="data-original=${original.__${id}__}">
+                            
+                            <label class="btn-toggle-edit" title="Clique para editar">
+                                <input type="checkbox" 
+                                       th:data-target-id="${id}"
+                                       onchange="toggleEdit(this)"
+                                       th:checked="${(exemplar.__${id}__ ?: '') != (original.__${id}__ ?: '')}">
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Localização</span>
+            <div class="grid-form">
+                <th:block th:each="campo : ${ {'País:pais', 'Estado:estado', 'Cidade:cidade', 'Localidade:localidade', 'Proprietário:proprietarioDoLocalDeColeta', 'Bioma:bioma', 'Latitude:latitude', 'Longitude:longitude'} }">
+                    <div class="form-item-lockable" th:with="label=${campo.split(':')[0]}, id=${campo.split(':')[1]}">
+                        <label th:text="${label}"></label>
+                        <div class="wrapper-input">
+                            <input type="text" th:id="${id}" th:field="*{__${id}__}"
+                                   th:classappend="${(exemplar.__${id}__ ?: '') != (original.__${id}__ ?: '')} ? 'input-editavel' : 'input-travado'"
+                                   th:readonly="${(exemplar.__${id}__ ?: '') == (original.__${id}__ ?: '')}">
+                            
+                            <label class="btn-toggle-edit" title="Clique para editar">
+                                <input type="checkbox" 
+                                       th:data-target-id="${id}"
+                                       onchange="toggleEdit(this)"
+                                       th:checked="${(exemplar.__${id}__ ?: '') != (original.__${id}__ ?: '')}">
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+
+        <div class="grupo-campos">
+            <span class="titulo-grupo">Coleta e Armazenamento</span>
+            <div class="grid-form">
+                <th:block th:each="campo : ${ {'Coletor:coletor', 'Data:data', 'Horário:horarioColeta', 'Método:metodoDeAquisicao', 'Gaveta:gaveta', 'Caixa:caixa'} }">
+                    <div class="form-item-lockable" th:with="label=${campo.split(':')[0]}, id=${campo.split(':')[1]}">
+                        <label th:text="${label}"></label>
+                        <div class="wrapper-input">
+                            <input type="text" th:id="${id}" th:field="*{__${id}__}"
+                                   th:classappend="${(exemplar.__${id}__ ?: '') != (original.__${id}__ ?: '')} ? 'input-editavel' : 'input-travado'"
+                                   th:readonly="${(exemplar.__${id}__ ?: '') == (original.__${id}__ ?: '')}">
+                            
+                            <label class="btn-toggle-edit" title="Clique para editar">
+                                <input type="checkbox" 
+                                       th:data-target-id="${id}"
+                                       onchange="toggleEdit(this)"
+                                       th:checked="${(exemplar.__${id}__ ?: '') != (original.__${id}__ ?: '')}">
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 40px; display: flex; align-items: center; justify-content: space-between;">
+            <a href="/" class="btn btn-cancelar">Cancelar</a>
+            <button type="submit" class="btn btn-salvar" style="background-color: #e67e22; box-shadow: 0 2px 4px rgba(230, 126, 34, 0.3);">
+                Revisar Alterações >>
+            </button>
+        </div>
+
+    </form>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Confirmar Edição</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+    <div class="header-container" style="border-left: 5px solid #3498db;">
+        <h1 style="color: #2980b9;">🔎 Revisar Alterações</h1>
+    </div>
+
+    <div class="grupo-campos" style="max-width: 900px; margin: 0 auto; padding: 20px;">
+        
+        <div style="background-color: #f0f9ff; border: 1px solid #cce5ff; color: #004085; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+            <strong>Confirmação:</strong> Você está prestes a alterar o exemplar <strong th:text="${novo.cod}"></strong>.
+            <br>Verifique abaixo as mudanças. O que está em <span style="color: #d35400; font-weight: bold;">laranja</span> será o novo valor.
+        </div>
+
+        <div class="comparacao-wrapper">
+            <table class="tabela-comparacao-compacta">
+                <thead>
+                    <tr>
+                        <th class="col-label">Campo</th>
+                        <th style="color: #7f8c8d;">Valor Atual (Banco)</th>
+                        <th style="color: #d35400;">Novo Valor (Salvar)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="campo : ${ {'especie', 'familia', 'genero', 'sexo', 'tribo', 'subtribo', 'subgenero', 'subespecie', 'autor', 'determinador', 'especieVegetalAssociada', 'pais', 'estado', 'cidade', 'localidade', 'proprietarioDoLocalDeColeta', 'bioma', 'latitude', 'longitude', 'coletor', 'data', 'horarioColeta', 'metodoDeAquisicao', 'gaveta', 'caixa'} }">
+                        <tr th:classappend="${(novo.__${campo}__ ?: '') != (antigo.__${campo}__ ?: '')} ? 'linha-diferente'">
+                            <td class="col-label" th:text="${#strings.capitalize(campo)}">Campo</td>
+                            <td class="col-banco" th:text="${antigo.__${campo}__}"></td>
+                            <td class="col-novo" th:text="${novo.__${campo}__}"></td>
+                        </tr>
+                    </th:block>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; justify-content: center; gap: 20px;">
+            
+            <form th:action="@{/editar/retornar}" method="post" th:object="${novo}" style="margin:0;">
+                <input type="hidden" th:field="*{cod}">
+                <th:block th:each="campo : ${ {'especie', 'familia', 'genero', 'sexo', 'tribo', 'subtribo', 'subgenero', 'subespecie', 'autor', 'determinador', 'especieVegetalAssociada', 'pais', 'estado', 'cidade', 'localidade', 'proprietarioDoLocalDeColeta', 'bioma', 'latitude', 'longitude', 'coletor', 'data', 'horarioColeta', 'metodoDeAquisicao', 'gaveta', 'caixa'} }">
+                     <input type="hidden" th:field="*{__${campo}__}">
+                </th:block>
+
+                <button type="submit" class="btn btn-cancelar">
+                    << Voltar e Corrigir
+                </button>
+            </form>
+
+            <form th:action="@{/editar/confirmar}" method="post" th:object="${novo}" style="margin:0;">
+                <input type="hidden" th:field="*{cod}">
+                <th:block th:each="campo : ${ {'especie', 'familia', 'genero', 'sexo', 'tribo', 'subtribo', 'subgenero', 'subespecie', 'autor', 'determinador', 'especieVegetalAssociada', 'pais', 'estado', 'cidade', 'localidade', 'proprietarioDoLocalDeColeta', 'bioma', 'latitude', 'longitude', 'coletor', 'data', 'horarioColeta', 'metodoDeAquisicao', 'gaveta', 'caixa'} }">
+                     <input type="hidden" th:field="*{__${campo}__}">
+                </th:block>
+
+                <button type="submit" class="btn btn-salvar">
+                    Confirmar Alterações ✅
+                </button>
+            </form>
+            
+        </div>
+    </div>
+
+</body>
+</html>
