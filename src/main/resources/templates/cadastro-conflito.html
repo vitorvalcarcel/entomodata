@@ -17,7 +17,7 @@
             <span class="icone-grande">🚫</span>
             <div>
                 <strong>Impossível cadastrar:</strong> O código <strong th:text="${novo.cod}"></strong> já existe.
-                <br>Compare os dados abaixo e decida se quer editar o registro existente com as novas informações.
+                <br>Abaixo estão listadas <strong>apenas as diferenças</strong> entre o que você digitou e o que já existe no banco.
             </div>
         </div>
 
@@ -31,49 +31,58 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:classappend="${novo.especie != antigo.especie} ? 'linha-diferente'"> 
+                    <tr th:if="${(novo.especie ?: '') != (antigo.especie ?: '')}" class="linha-diferente"> 
                         <td class="col-label">Espécie</td> <td class="col-banco" th:text="${antigo.especie}"></td> <td class="col-novo" th:text="${novo.especie}"></td> 
                     </tr>
-                    <tr th:classappend="${novo.sexo != antigo.sexo} ? 'linha-diferente'"> 
+                    <tr th:if="${(novo.sexo ?: '') != (antigo.sexo ?: '')}" class="linha-diferente"> 
                         <td class="col-label">Sexo</td> <td class="col-banco" th:text="${antigo.sexo}"></td> <td class="col-novo" th:text="${novo.sexo}"></td> 
                     </tr>
                     
-                    <tr th:classappend="${novo.familia != antigo.familia} ? 'linha-diferente'"> <td class="col-label">Família</td> <td class="col-banco" th:text="${antigo.familia}"></td> <td class="col-novo" th:text="${novo.familia}"></td> </tr>
-                    <tr th:classappend="${novo.subfamilia != antigo.subfamilia} ? 'linha-diferente'"> <td class="col-label">Subfamília</td> <td class="col-banco" th:text="${antigo.subfamilia}"></td> <td class="col-novo" th:text="${novo.subfamilia}"></td> </tr>
-                    <tr th:classappend="${novo.tribo != antigo.tribo} ? 'linha-diferente'"> <td class="col-label">Tribo</td> <td class="col-banco" th:text="${antigo.tribo}"></td> <td class="col-novo" th:text="${novo.tribo}"></td> </tr>
-                    <tr th:classappend="${novo.subtribo != antigo.subtribo} ? 'linha-diferente'"> <td class="col-label">Subtribo</td> <td class="col-banco" th:text="${antigo.subtribo}"></td> <td class="col-novo" th:text="${novo.subtribo}"></td> </tr>
-                    <tr th:classappend="${novo.genero != antigo.genero} ? 'linha-diferente'"> <td class="col-label">Gênero</td> <td class="col-banco" th:text="${antigo.genero}"></td> <td class="col-novo" th:text="${novo.genero}"></td> </tr>
-                    <tr th:classappend="${novo.subgenero != antigo.subgenero} ? 'linha-diferente'"> <td class="col-label">Subgênero</td> <td class="col-banco" th:text="${antigo.subgenero}"></td> <td class="col-novo" th:text="${novo.subgenero}"></td> </tr>
-                    <tr th:classappend="${novo.subespecie != antigo.subespecie} ? 'linha-diferente'"> <td class="col-label">Subespécie</td> <td class="col-banco" th:text="${antigo.subespecie}"></td> <td class="col-novo" th:text="${novo.subespecie}"></td> </tr>
-                    <tr th:classappend="${novo.autor != antigo.autor} ? 'linha-diferente'"> <td class="col-label">Autor</td> <td class="col-banco" th:text="${antigo.autor}"></td> <td class="col-novo" th:text="${novo.autor}"></td> </tr>
-                    <tr th:classappend="${novo.determinador != antigo.determinador} ? 'linha-diferente'"> <td class="col-label">Determinador</td> <td class="col-banco" th:text="${antigo.determinador}"></td> <td class="col-novo" th:text="${novo.determinador}"></td> </tr>
-                    <tr th:classappend="${novo.especieVegetalAssociada != antigo.especieVegetalAssociada} ? 'linha-diferente'"> <td class="col-label">Planta Assoc.</td> <td class="col-banco" th:text="${antigo.especieVegetalAssociada}"></td> <td class="col-novo" th:text="${novo.especieVegetalAssociada}"></td> </tr>
+                    <tr th:if="${(novo.familia ?: '') != (antigo.familia ?: '')}" class="linha-diferente"> <td class="col-label">Família</td> <td class="col-banco" th:text="${antigo.familia}"></td> <td class="col-novo" th:text="${novo.familia}"></td> </tr>
+                    <tr th:if="${(novo.subfamilia ?: '') != (antigo.subfamilia ?: '')}" class="linha-diferente"> <td class="col-label">Subfamília</td> <td class="col-banco" th:text="${antigo.subfamilia}"></td> <td class="col-novo" th:text="${novo.subfamilia}"></td> </tr>
+                    <tr th:if="${(novo.tribo ?: '') != (antigo.tribo ?: '')}" class="linha-diferente"> <td class="col-label">Tribo</td> <td class="col-banco" th:text="${antigo.tribo}"></td> <td class="col-novo" th:text="${novo.tribo}"></td> </tr>
+                    <tr th:if="${(novo.subtribo ?: '') != (antigo.subtribo ?: '')}" class="linha-diferente"> <td class="col-label">Subtribo</td> <td class="col-banco" th:text="${antigo.subtribo}"></td> <td class="col-novo" th:text="${novo.subtribo}"></td> </tr>
+                    <tr th:if="${(novo.genero ?: '') != (antigo.genero ?: '')}" class="linha-diferente"> <td class="col-label">Gênero</td> <td class="col-banco" th:text="${antigo.genero}"></td> <td class="col-novo" th:text="${novo.genero}"></td> </tr>
+                    <tr th:if="${(novo.subgenero ?: '') != (antigo.subgenero ?: '')}" class="linha-diferente"> <td class="col-label">Subgênero</td> <td class="col-banco" th:text="${antigo.subgenero}"></td> <td class="col-novo" th:text="${novo.subgenero}"></td> </tr>
+                    <tr th:if="${(novo.subespecie ?: '') != (antigo.subespecie ?: '')}" class="linha-diferente"> <td class="col-label">Subespécie</td> <td class="col-banco" th:text="${antigo.subespecie}"></td> <td class="col-novo" th:text="${novo.subespecie}"></td> </tr>
+                    <tr th:if="${(novo.autor ?: '') != (antigo.autor ?: '')}" class="linha-diferente"> <td class="col-label">Autor</td> <td class="col-banco" th:text="${antigo.autor}"></td> <td class="col-novo" th:text="${novo.autor}"></td> </tr>
+                    <tr th:if="${(novo.determinador ?: '') != (antigo.determinador ?: '')}" class="linha-diferente"> <td class="col-label">Determinador</td> <td class="col-banco" th:text="${antigo.determinador}"></td> <td class="col-novo" th:text="${novo.determinador}"></td> </tr>
+                    <tr th:if="${(novo.especieVegetalAssociada ?: '') != (antigo.especieVegetalAssociada ?: '')}" class="linha-diferente"> <td class="col-label">Planta Assoc.</td> <td class="col-banco" th:text="${antigo.especieVegetalAssociada}"></td> <td class="col-novo" th:text="${novo.especieVegetalAssociada}"></td> </tr>
 
-                    <tr th:classappend="${novo.gaveta != antigo.gaveta} ? 'linha-diferente'"> <td class="col-label">Gaveta</td> <td class="col-banco" th:text="${antigo.gaveta}"></td> <td class="col-novo" th:text="${novo.gaveta}"></td> </tr>
-                    <tr th:classappend="${novo.caixa != antigo.caixa} ? 'linha-diferente'"> <td class="col-label">Caixa</td> <td class="col-banco" th:text="${antigo.caixa}"></td> <td class="col-novo" th:text="${novo.caixa}"></td> </tr>
+                    <tr th:if="${(novo.gaveta ?: '') != (antigo.gaveta ?: '')}" class="linha-diferente"> <td class="col-label">Gaveta</td> <td class="col-banco" th:text="${antigo.gaveta}"></td> <td class="col-novo" th:text="${novo.gaveta}"></td> </tr>
+                    <tr th:if="${(novo.caixa ?: '') != (antigo.caixa ?: '')}" class="linha-diferente"> <td class="col-label">Caixa</td> <td class="col-banco" th:text="${antigo.caixa}"></td> <td class="col-novo" th:text="${novo.caixa}"></td> </tr>
 
-                    <tr th:classappend="${novo.pais != antigo.pais} ? 'linha-diferente'"> <td class="col-label">País</td> <td class="col-banco" th:text="${antigo.pais}"></td> <td class="col-novo" th:text="${novo.pais}"></td> </tr>
-                    <tr th:classappend="${novo.estado != antigo.estado} ? 'linha-diferente'"> <td class="col-label">Estado</td> <td class="col-banco" th:text="${antigo.estado}"></td> <td class="col-novo" th:text="${novo.estado}"></td> </tr>
-                    <tr th:classappend="${novo.cidade != antigo.cidade} ? 'linha-diferente'"> <td class="col-label">Cidade</td> <td class="col-banco" th:text="${antigo.cidade}"></td> <td class="col-novo" th:text="${novo.cidade}"></td> </tr>
-                    <tr th:classappend="${novo.localidade != antigo.localidade} ? 'linha-diferente'"> <td class="col-label">Localidade</td> <td class="col-banco" th:text="${antigo.localidade}"></td> <td class="col-novo" th:text="${novo.localidade}"></td> </tr>
-                    <tr th:classappend="${novo.proprietarioDoLocalDeColeta != antigo.proprietarioDoLocalDeColeta} ? 'linha-diferente'"> <td class="col-label">Proprietário</td> <td class="col-banco" th:text="${antigo.proprietarioDoLocalDeColeta}"></td> <td class="col-novo" th:text="${novo.proprietarioDoLocalDeColeta}"></td> </tr>
-                    <tr th:classappend="${novo.bioma != antigo.bioma} ? 'linha-diferente'"> <td class="col-label">Bioma</td> <td class="col-banco" th:text="${antigo.bioma}"></td> <td class="col-novo" th:text="${novo.bioma}"></td> </tr>
-                    <tr th:classappend="${novo.latitude != antigo.latitude} ? 'linha-diferente'"> <td class="col-label">Latitude</td> <td class="col-banco" th:text="${antigo.latitude}"></td> <td class="col-novo" th:text="${novo.latitude}"></td> </tr>
-                    <tr th:classappend="${novo.longitude != antigo.longitude} ? 'linha-diferente'"> <td class="col-label">Longitude</td> <td class="col-banco" th:text="${antigo.longitude}"></td> <td class="col-novo" th:text="${novo.longitude}"></td> </tr>
+                    <tr th:if="${(novo.pais ?: '') != (antigo.pais ?: '')}" class="linha-diferente"> <td class="col-label">País</td> <td class="col-banco" th:text="${antigo.pais}"></td> <td class="col-novo" th:text="${novo.pais}"></td> </tr>
+                    <tr th:if="${(novo.estado ?: '') != (antigo.estado ?: '')}" class="linha-diferente"> <td class="col-label">Estado</td> <td class="col-banco" th:text="${antigo.estado}"></td> <td class="col-novo" th:text="${novo.estado}"></td> </tr>
+                    <tr th:if="${(novo.cidade ?: '') != (antigo.cidade ?: '')}" class="linha-diferente"> <td class="col-label">Cidade</td> <td class="col-banco" th:text="${antigo.cidade}"></td> <td class="col-novo" th:text="${novo.cidade}"></td> </tr>
+                    <tr th:if="${(novo.localidade ?: '') != (antigo.localidade ?: '')}" class="linha-diferente"> <td class="col-label">Localidade</td> <td class="col-banco" th:text="${antigo.localidade}"></td> <td class="col-novo" th:text="${novo.localidade}"></td> </tr>
+                    <tr th:if="${(novo.proprietarioDoLocalDeColeta ?: '') != (antigo.proprietarioDoLocalDeColeta ?: '')}" class="linha-diferente"> <td class="col-label">Proprietário</td> <td class="col-banco" th:text="${antigo.proprietarioDoLocalDeColeta}"></td> <td class="col-novo" th:text="${novo.proprietarioDoLocalDeColeta}"></td> </tr>
+                    <tr th:if="${(novo.bioma ?: '') != (antigo.bioma ?: '')}" class="linha-diferente"> <td class="col-label">Bioma</td> <td class="col-banco" th:text="${antigo.bioma}"></td> <td class="col-novo" th:text="${novo.bioma}"></td> </tr>
+                    <tr th:if="${(novo.latitude ?: '') != (antigo.latitude ?: '')}" class="linha-diferente"> <td class="col-label">Latitude</td> <td class="col-banco" th:text="${antigo.latitude}"></td> <td class="col-novo" th:text="${novo.latitude}"></td> </tr>
+                    <tr th:if="${(novo.longitude ?: '') != (antigo.longitude ?: '')}" class="linha-diferente"> <td class="col-label">Longitude</td> <td class="col-banco" th:text="${antigo.longitude}"></td> <td class="col-novo" th:text="${novo.longitude}"></td> </tr>
 
-                    <tr th:classappend="${novo.coletor != antigo.coletor} ? 'linha-diferente'"> <td class="col-label">Coletor</td> <td class="col-banco" th:text="${antigo.coletor}"></td> <td class="col-novo" th:text="${novo.coletor}"></td> </tr>
-                    <tr th:classappend="${novo.data != antigo.data} ? 'linha-diferente'"> <td class="col-label">Data</td> <td class="col-banco" th:text="${antigo.data}"></td> <td class="col-novo" th:text="${novo.data}"></td> </tr>
-                    <tr th:classappend="${novo.horarioColeta != antigo.horarioColeta} ? 'linha-diferente'"> <td class="col-label">Horário</td> <td class="col-banco" th:text="${antigo.horarioColeta}"></td> <td class="col-novo" th:text="${novo.horarioColeta}"></td> </tr>
-                    <tr th:classappend="${novo.metodoDeAquisicao != antigo.metodoDeAquisicao} ? 'linha-diferente'"> <td class="col-label">Método</td> <td class="col-banco" th:text="${antigo.metodoDeAquisicao}"></td> <td class="col-novo" th:text="${novo.metodoDeAquisicao}"></td> </tr>
+                    <tr th:if="${(novo.coletor ?: '') != (antigo.coletor ?: '')}" class="linha-diferente"> <td class="col-label">Coletor</td> <td class="col-banco" th:text="${antigo.coletor}"></td> <td class="col-novo" th:text="${novo.coletor}"></td> </tr>
+                    <tr th:if="${(novo.data ?: '') != (antigo.data ?: '')}" class="linha-diferente"> <td class="col-label">Data</td> <td class="col-banco" th:text="${antigo.data}"></td> <td class="col-novo" th:text="${novo.data}"></td> </tr>
+                    <tr th:if="${(novo.horarioColeta ?: '') != (antigo.horarioColeta ?: '')}" class="linha-diferente"> <td class="col-label">Horário</td> <td class="col-banco" th:text="${antigo.horarioColeta}"></td> <td class="col-novo" th:text="${novo.horarioColeta}"></td> </tr>
+                    <tr th:if="${(novo.metodoDeAquisicao ?: '') != (antigo.metodoDeAquisicao ?: '')}" class="linha-diferente"> <td class="col-label">Método</td> <td class="col-banco" th:text="${antigo.metodoDeAquisicao}"></td> <td class="col-novo" th:text="${novo.metodoDeAquisicao}"></td> </tr>
                 </tbody>
             </table>
+            
+            <div style="padding: 20px; text-align: center; color: #999; font-style: italic;" id="msgSemDiferencas">
+                Nenhuma diferença encontrada nos dados. O registro é idêntico.
+            </div>
+            <script>
+                if (document.querySelectorAll('.linha-diferente').length > 0) {
+                    document.getElementById('msgSemDiferencas').style.display = 'none';
+                }
+            </script>
         </div>
 
         <div style="display: flex; justify-content: center; gap: 20px; margin-top: 25px;">
             
-            <a href="/" class="btn btn-paginacao" style="padding: 10px 25px;">Cancelar e Voltar</a>
+            <a href="/" class="btn btn-cancelar" style="padding: 10px 25px; text-decoration: none;">Cancelar e Voltar</a>
             
-            <form th:action="@{/editar/conflito}" method="post" th:object="${novo}">
+            <form th:action="@{/editar/conflito}" method="post" th:object="${novo}" style="margin: 0;">
                 
                 <input type="hidden" th:field="*{cod}">
                 <input type="hidden" th:field="*{familia}">
@@ -103,8 +112,8 @@
                 <input type="hidden" th:field="*{data}">
                 <input type="hidden" th:field="*{horarioColeta}">
 
-                <button type="submit" class="btn btn-novo" style="background-color: #f39c12; padding: 10px 25px; border: none; font-size: 14px;">
-                    ✏️ Editar o Existente
+                <button type="submit" class="btn btn-salvar" style="background-color: #f39c12; box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3);">
+                    ✏️ Editar o Existente com estes dados
                 </button>
             </form>
         </div>
