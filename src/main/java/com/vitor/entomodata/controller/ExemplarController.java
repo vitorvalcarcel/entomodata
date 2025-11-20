@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.vitor.entomodata.model.Exemplar;
 import com.vitor.entomodata.service.ExemplarService;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,6 +78,13 @@ public class ExemplarController {
         model.addAttribute("edicao", true);
         return "cadastro";
     }
+    
+    @PostMapping("/editar/conflito")
+    public String editarConflitoCadastro(Exemplar exemplar, Model model) {
+        model.addAttribute("exemplar", exemplar);
+        model.addAttribute("edicao", true);
+        return "cadastro";
+    }
 
     @PostMapping("/salvar")
     public String salvarExemplar(Exemplar exemplar, @RequestParam(defaultValue = "false") boolean isEdit, Model model) {
@@ -101,7 +107,6 @@ public class ExemplarController {
         service.deletarPorListaDeCodigos(Arrays.asList(cod));
         return "redirect:/";
     }
-
 
     @GetMapping("/deletar")
     public String telaDeletar() {
@@ -142,14 +147,10 @@ public class ExemplarController {
     ) {
         if (senhaDigitada != qtdReal) {
             List<Exemplar> encontrados = service.buscarPorListaDeCodigos(ids);
-            
             model.addAttribute("encontrados", encontrados);
             model.addAttribute("qtdParaApagar", qtdReal);
-            
-            model.addAttribute("naoEncontrados", new ArrayList<>());
-            
+            model.addAttribute("naoEncontrados", new java.util.ArrayList<>()); // Corrige o bug do NULL
             model.addAttribute("erro", "Olha, você digitou o número errado. Você sabe o que tá fazendo? Presta atenção!");
-            
             return "deletar-confirma"; 
         }
 

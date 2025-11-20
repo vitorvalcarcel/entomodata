@@ -8,43 +8,107 @@
 <body>
 
     <div class="header-container" style="border-left: 5px solid #f39c12;">
-        <h1 style="color: #e67e22;">⚠️ Código Já Cadastrado</h1>
+        <h1 style="color: #e67e22; font-size: 1.3rem;">⚠️ Código Já Cadastrado</h1>
     </div>
 
-    <div class="grupo-campos" style="max-width: 800px; margin: 0 auto;">
-        <p style="margin-top: 0; color: #555; font-size: 16px;">
-            Você tentou cadastrar o exemplar <strong th:text="${novo.cod}" style="color: #d35400;"></strong>, mas este código já existe no banco de dados.
-        </p>
+    <div class="grupo-campos" style="max-width: 900px; margin: 0 auto; padding: 20px;">
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
-            
-            <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
-                <h3 style="margin-top: 0; font-size: 14px; color: #7f8c8d; text-transform: uppercase;">Já existe no banco:</h3>
-                <p><strong>Espécie:</strong> <span th:text="${antigo.especie}"></span></p>
-                <p><strong>Coletor:</strong> <span th:text="${antigo.coletor}"></span></p>
-                <p><strong>Local:</strong> <span th:text="${antigo.localidade}"></span></p>
-            </div>
-
-            <div style="background: #fff8e1; padding: 15px; border-radius: 6px; border: 1px solid #ffe0b2;">
-                <h3 style="margin-top: 0; font-size: 14px; color: #f57c00; text-transform: uppercase;">Você digitou:</h3>
-                <p><strong>Espécie:</strong> <span th:text="${novo.especie}"></span></p>
-                <p><strong>Coletor:</strong> <span th:text="${novo.coletor}"></span></p>
-                <p><strong>Local:</strong> <span th:text="${novo.localidade}"></span></p>
+        <div class="destaque-aviso-compacto">
+            <span class="icone-grande">🚫</span>
+            <div>
+                <strong>Impossível cadastrar:</strong> O código <strong th:text="${novo.cod}"></strong> já existe.
+                <br>Compare os dados abaixo e decida se quer editar o registro existente com as novas informações.
             </div>
         </div>
 
-        <h3 style="text-align: center; color: #555;">O que deseja fazer?</h3>
+        <div class="comparacao-wrapper">
+            <table class="tabela-comparacao-compacta">
+                <thead>
+                    <tr>
+                        <th class="col-label">Campo</th>
+                        <th style="color: #7f8c8d;">Existente (Banco)</th>
+                        <th style="color: #d35400;">Novo (Seu Rascunho)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:classappend="${novo.especie != antigo.especie} ? 'linha-diferente'"> 
+                        <td class="col-label">Espécie</td> <td class="col-banco" th:text="${antigo.especie}"></td> <td class="col-novo" th:text="${novo.especie}"></td> 
+                    </tr>
+                    <tr th:classappend="${novo.sexo != antigo.sexo} ? 'linha-diferente'"> 
+                        <td class="col-label">Sexo</td> <td class="col-banco" th:text="${antigo.sexo}"></td> <td class="col-novo" th:text="${novo.sexo}"></td> 
+                    </tr>
+                    
+                    <tr th:classappend="${novo.familia != antigo.familia} ? 'linha-diferente'"> <td class="col-label">Família</td> <td class="col-banco" th:text="${antigo.familia}"></td> <td class="col-novo" th:text="${novo.familia}"></td> </tr>
+                    <tr th:classappend="${novo.subfamilia != antigo.subfamilia} ? 'linha-diferente'"> <td class="col-label">Subfamília</td> <td class="col-banco" th:text="${antigo.subfamilia}"></td> <td class="col-novo" th:text="${novo.subfamilia}"></td> </tr>
+                    <tr th:classappend="${novo.tribo != antigo.tribo} ? 'linha-diferente'"> <td class="col-label">Tribo</td> <td class="col-banco" th:text="${antigo.tribo}"></td> <td class="col-novo" th:text="${novo.tribo}"></td> </tr>
+                    <tr th:classappend="${novo.subtribo != antigo.subtribo} ? 'linha-diferente'"> <td class="col-label">Subtribo</td> <td class="col-banco" th:text="${antigo.subtribo}"></td> <td class="col-novo" th:text="${novo.subtribo}"></td> </tr>
+                    <tr th:classappend="${novo.genero != antigo.genero} ? 'linha-diferente'"> <td class="col-label">Gênero</td> <td class="col-banco" th:text="${antigo.genero}"></td> <td class="col-novo" th:text="${novo.genero}"></td> </tr>
+                    <tr th:classappend="${novo.subgenero != antigo.subgenero} ? 'linha-diferente'"> <td class="col-label">Subgênero</td> <td class="col-banco" th:text="${antigo.subgenero}"></td> <td class="col-novo" th:text="${novo.subgenero}"></td> </tr>
+                    <tr th:classappend="${novo.subespecie != antigo.subespecie} ? 'linha-diferente'"> <td class="col-label">Subespécie</td> <td class="col-banco" th:text="${antigo.subespecie}"></td> <td class="col-novo" th:text="${novo.subespecie}"></td> </tr>
+                    <tr th:classappend="${novo.autor != antigo.autor} ? 'linha-diferente'"> <td class="col-label">Autor</td> <td class="col-banco" th:text="${antigo.autor}"></td> <td class="col-novo" th:text="${novo.autor}"></td> </tr>
+                    <tr th:classappend="${novo.determinador != antigo.determinador} ? 'linha-diferente'"> <td class="col-label">Determinador</td> <td class="col-banco" th:text="${antigo.determinador}"></td> <td class="col-novo" th:text="${novo.determinador}"></td> </tr>
+                    <tr th:classappend="${novo.especieVegetalAssociada != antigo.especieVegetalAssociada} ? 'linha-diferente'"> <td class="col-label">Planta Assoc.</td> <td class="col-banco" th:text="${antigo.especieVegetalAssociada}"></td> <td class="col-novo" th:text="${novo.especieVegetalAssociada}"></td> </tr>
 
-        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
-            
-            <a href="/" class="btn btn-paginacao" style="padding: 12px 25px;">Cancelar e Voltar</a>
-            
-            <a th:href="@{/editar/{cod}(cod=${novo.cod})}" class="btn btn-novo" style="background-color: #f39c12; padding: 12px 25px;">
-                ✏️ Editar o Existente
-            </a>
+                    <tr th:classappend="${novo.gaveta != antigo.gaveta} ? 'linha-diferente'"> <td class="col-label">Gaveta</td> <td class="col-banco" th:text="${antigo.gaveta}"></td> <td class="col-novo" th:text="${novo.gaveta}"></td> </tr>
+                    <tr th:classappend="${novo.caixa != antigo.caixa} ? 'linha-diferente'"> <td class="col-label">Caixa</td> <td class="col-banco" th:text="${antigo.caixa}"></td> <td class="col-novo" th:text="${novo.caixa}"></td> </tr>
 
+                    <tr th:classappend="${novo.pais != antigo.pais} ? 'linha-diferente'"> <td class="col-label">País</td> <td class="col-banco" th:text="${antigo.pais}"></td> <td class="col-novo" th:text="${novo.pais}"></td> </tr>
+                    <tr th:classappend="${novo.estado != antigo.estado} ? 'linha-diferente'"> <td class="col-label">Estado</td> <td class="col-banco" th:text="${antigo.estado}"></td> <td class="col-novo" th:text="${novo.estado}"></td> </tr>
+                    <tr th:classappend="${novo.cidade != antigo.cidade} ? 'linha-diferente'"> <td class="col-label">Cidade</td> <td class="col-banco" th:text="${antigo.cidade}"></td> <td class="col-novo" th:text="${novo.cidade}"></td> </tr>
+                    <tr th:classappend="${novo.localidade != antigo.localidade} ? 'linha-diferente'"> <td class="col-label">Localidade</td> <td class="col-banco" th:text="${antigo.localidade}"></td> <td class="col-novo" th:text="${novo.localidade}"></td> </tr>
+                    <tr th:classappend="${novo.proprietarioDoLocalDeColeta != antigo.proprietarioDoLocalDeColeta} ? 'linha-diferente'"> <td class="col-label">Proprietário</td> <td class="col-banco" th:text="${antigo.proprietarioDoLocalDeColeta}"></td> <td class="col-novo" th:text="${novo.proprietarioDoLocalDeColeta}"></td> </tr>
+                    <tr th:classappend="${novo.bioma != antigo.bioma} ? 'linha-diferente'"> <td class="col-label">Bioma</td> <td class="col-banco" th:text="${antigo.bioma}"></td> <td class="col-novo" th:text="${novo.bioma}"></td> </tr>
+                    <tr th:classappend="${novo.latitude != antigo.latitude} ? 'linha-diferente'"> <td class="col-label">Latitude</td> <td class="col-banco" th:text="${antigo.latitude}"></td> <td class="col-novo" th:text="${novo.latitude}"></td> </tr>
+                    <tr th:classappend="${novo.longitude != antigo.longitude} ? 'linha-diferente'"> <td class="col-label">Longitude</td> <td class="col-banco" th:text="${antigo.longitude}"></td> <td class="col-novo" th:text="${novo.longitude}"></td> </tr>
+
+                    <tr th:classappend="${novo.coletor != antigo.coletor} ? 'linha-diferente'"> <td class="col-label">Coletor</td> <td class="col-banco" th:text="${antigo.coletor}"></td> <td class="col-novo" th:text="${novo.coletor}"></td> </tr>
+                    <tr th:classappend="${novo.data != antigo.data} ? 'linha-diferente'"> <td class="col-label">Data</td> <td class="col-banco" th:text="${antigo.data}"></td> <td class="col-novo" th:text="${novo.data}"></td> </tr>
+                    <tr th:classappend="${novo.horarioColeta != antigo.horarioColeta} ? 'linha-diferente'"> <td class="col-label">Horário</td> <td class="col-banco" th:text="${antigo.horarioColeta}"></td> <td class="col-novo" th:text="${novo.horarioColeta}"></td> </tr>
+                    <tr th:classappend="${novo.metodoDeAquisicao != antigo.metodoDeAquisicao} ? 'linha-diferente'"> <td class="col-label">Método</td> <td class="col-banco" th:text="${antigo.metodoDeAquisicao}"></td> <td class="col-novo" th:text="${novo.metodoDeAquisicao}"></td> </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 25px;">
+            
+            <a href="/" class="btn btn-paginacao" style="padding: 10px 25px;">Cancelar e Voltar</a>
+            
+            <form th:action="@{/editar/conflito}" method="post" th:object="${novo}">
+                
+                <input type="hidden" th:field="*{cod}">
+                <input type="hidden" th:field="*{familia}">
+                <input type="hidden" th:field="*{subfamilia}">
+                <input type="hidden" th:field="*{tribo}">
+                <input type="hidden" th:field="*{subtribo}">
+                <input type="hidden" th:field="*{genero}">
+                <input type="hidden" th:field="*{subgenero}">
+                <input type="hidden" th:field="*{especie}">
+                <input type="hidden" th:field="*{subespecie}">
+                <input type="hidden" th:field="*{autor}">
+                <input type="hidden" th:field="*{determinador}">
+                <input type="hidden" th:field="*{sexo}">
+                <input type="hidden" th:field="*{especieVegetalAssociada}">
+                <input type="hidden" th:field="*{gaveta}">
+                <input type="hidden" th:field="*{caixa}">
+                <input type="hidden" th:field="*{pais}">
+                <input type="hidden" th:field="*{estado}">
+                <input type="hidden" th:field="*{cidade}">
+                <input type="hidden" th:field="*{localidade}">
+                <input type="hidden" th:field="*{proprietarioDoLocalDeColeta}">
+                <input type="hidden" th:field="*{bioma}">
+                <input type="hidden" th:field="*{latitude}">
+                <input type="hidden" th:field="*{longitude}">
+                <input type="hidden" th:field="*{coletor}">
+                <input type="hidden" th:field="*{metodoDeAquisicao}">
+                <input type="hidden" th:field="*{data}">
+                <input type="hidden" th:field="*{horarioColeta}">
+
+                <button type="submit" class="btn btn-novo" style="background-color: #f39c12; padding: 10px 25px; border: none; font-size: 14px;">
+                    ✏️ Editar o Existente
+                </button>
+            </form>
         </div>
     </div>
-
+    <br>
 </body>
 </html>

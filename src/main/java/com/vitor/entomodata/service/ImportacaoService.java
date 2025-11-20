@@ -179,7 +179,6 @@ public class ImportacaoService {
             
             Optional<Exemplar> existente = exemplarRepository.findById(codigo);
             if(existente.isPresent()) {
-
             }
 
             Map<String, Set<String>> conflitosDesteCodigo = new HashMap<>();
