@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +37,6 @@ public class ImportacaoService {
 
     private final DataFormatter dataFormatter = new DataFormatter();
 
-    // --- MÉTODOS DA ANÁLISE COM BANCO ---
     public AnaliseBancoDTO analisarConflitosComBanco(List<Exemplar> listaDoExcel) {
         List<Exemplar> novos = new ArrayList<>();
         List<Exemplar> existentes = new ArrayList<>();
@@ -57,7 +55,6 @@ public class ImportacaoService {
         exemplarRepository.saveAll(lista);
     }
 
-    // --- PROCESSAMENTO PRINCIPAL ---
     public List<Exemplar> processarImportacao(String nomeArquivo, Map<String, String> mapaDeColunas, boolean verificarDuplicidade, Map<String, Integer> linhasEscolhidas) throws IOException {
         File arquivo = new File(System.getProperty("java.io.tmpdir"), nomeArquivo);
         List<Exemplar> exemplaresProcessados = new ArrayList<>();
@@ -98,7 +95,6 @@ public class ImportacaoService {
                 
                 if (codigoNoExcel == null || codigoNoExcel.isEmpty()) continue;
 
-                // Cria objeto novo
                 Exemplar exemplar = new Exemplar();
                 exemplar.setCod(codigoNoExcel);
                 
@@ -122,7 +118,7 @@ public class ImportacaoService {
         return exemplaresProcessados;
     }
 
-    // --- MÉTODOS DA MESCLAGEM INTELIGENTE (RESTAURADOS) ---
+    // === LÓGICA DE MESCLAGEM INTELIGENTE (AGORA COMPLETA) ===
 
     public Map<String, Map<String, Set<String>>> executarMesclagemInteligente(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, List<Integer>> duplicatas) throws IOException {
         // 1. Salva as linhas que NÃO são duplicatas (o resto da planilha)
@@ -130,9 +126,11 @@ public class ImportacaoService {
         for (List<Integer> linhas : duplicatas.values()) {
             linhasParaIgnorar.addAll(linhas);
         }
+        // Importante: Salva os não duplicados direto no banco por enquanto
+        // (Num fluxo ideal, deveríamos retornar tudo junto, mas para manter a lógica atual, salvamos os "limpos" e tratamos os "sujos")
         salvarLinhasNaoDuplicadas(nomeArquivo, mapaDeColunas, linhasParaIgnorar);
 
-        // 2. Continua a lógica normal de mesclar as duplicatas
+        // 2. Processa as duplicatas
         Map<String, List<OpcaoConflito>> dadosBrutos = detalharConflitos(nomeArquivo, mapaDeColunas, duplicatas);
         Map<String, Map<String, Set<String>>> conflitosReais = new HashMap<>();
 
@@ -140,14 +138,14 @@ public class ImportacaoService {
             String codigo = entry.getKey();
             List<OpcaoConflito> linhas = entry.getValue();
             
-            // Recupera do banco se existir para mesclar também com o banco (Comportamento Híbrido)
-            Optional<Exemplar> existente = exemplarRepository.findById(codigo);
-            Exemplar exemplarFinal = existente.orElse(new Exemplar());
+            Exemplar exemplarFinal = new Exemplar();
             exemplarFinal.setCod(codigo);
             
+            // Mapa para identificar conflitos neste código: Campo -> Valores Distintos
             Map<String, Set<String>> conflitosDesteCodigo = new HashMap<>();
             boolean temConflitoGeral = false;
 
+            // Descobre todos os campos presentes nessas linhas
             Set<String> todosCampos = new HashSet<>();
             for(OpcaoConflito op : linhas) todosCampos.addAll(op.getDados().keySet());
 
@@ -162,24 +160,68 @@ public class ImportacaoService {
                 }
 
                 if (valoresDistintos.isEmpty()) {
-                    // Nada
+                    // Campo vazio em todas as linhas, ignora
                 } else if (valoresDistintos.size() == 1) {
+                    // Sucesso! Todas as linhas concordam (ou complementam vazios)
                     preencherCampo(exemplarFinal, campo, valoresDistintos.iterator().next());
                 } else {
+                    // CONFLITO! Mais de um valor diferente para o mesmo campo
                     conflitosDesteCodigo.put(campo, valoresDistintos);
                     temConflitoGeral = true;
                 }
             }
 
             if (!temConflitoGeral) {
+                // Se resolveu tudo sozinho, salva!
                 exemplarService.salvar(exemplarFinal);
             } else {
+                // Se sobrou conflito, guarda para o usuário decidir
                 conflitosReais.put(codigo, conflitosDesteCodigo);
             }
         }
         
         return conflitosReais;
     }
+
+    public void aplicarMesclagemFinal(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, Map<String, String>> decisoes) throws IOException {
+        // Recalcula duplicatas para saber quais linhas ler
+        Map<String, List<Integer>> duplicatas = getMapaOcorrencias(nomeArquivo, mapaDeColunas);
+        Map<String, List<OpcaoConflito>> dadosBrutos = detalharConflitos(nomeArquivo, mapaDeColunas, duplicatas);
+
+        for (Map.Entry<String, List<OpcaoConflito>> entry : dadosBrutos.entrySet()) {
+            String codigo = entry.getKey();
+            List<OpcaoConflito> linhas = entry.getValue();
+            
+            // Só processa os que tinham conflito (os outros já foram salvos no passo anterior)
+            if (decisoes.containsKey(codigo)) {
+                Exemplar exemplarFinal = new Exemplar();
+                exemplarFinal.setCod(codigo);
+                
+                Map<String, String> decisoesDesteCodigo = decisoes.get(codigo);
+                Set<String> todosCampos = new HashSet<>();
+                for(OpcaoConflito op : linhas) todosCampos.addAll(op.getDados().keySet());
+
+                for (String campo : todosCampos) {
+                    // Se o usuário decidiu algo para este campo, usa a decisão
+                    if (decisoesDesteCodigo.containsKey(campo)) {
+                         preencherCampo(exemplarFinal, campo, decisoesDesteCodigo.get(campo));
+                    } else {
+                        // Se não decidiu (era campo sem conflito), aplica a lógica de pegar o primeiro valor válido
+                        for (OpcaoConflito linha : linhas) {
+                            String val = linha.getDados().get(campo);
+                            if (val != null && !val.trim().isEmpty()) {
+                                preencherCampo(exemplarFinal, campo, val);
+                                break; 
+                            }
+                        }
+                    }
+                }
+                exemplarService.salvar(exemplarFinal);
+            }
+        }
+    }
+
+    // --- MÉTODOS AUXILIARES ---
 
     private void salvarLinhasNaoDuplicadas(String nomeArquivo, Map<String, String> mapaDeColunas, Set<Integer> linhasParaIgnorar) throws IOException {
         File arquivo = new File(System.getProperty("java.io.tmpdir"), nomeArquivo);
@@ -198,6 +240,7 @@ public class ImportacaoService {
             Integer idxCodigo = indiceDasColunas.get(nomeColunaCodigo);
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                // Pula as linhas que são duplicadas (serão tratadas pelo merge)
                 if (linhasParaIgnorar.contains(i + 1)) continue;
 
                 Row row = sheet.getRow(i);
@@ -210,8 +253,7 @@ public class ImportacaoService {
                 
                 if (codigoNoExcel == null || codigoNoExcel.isEmpty()) continue;
 
-                Optional<Exemplar> existente = exemplarRepository.findById(codigoNoExcel);
-                Exemplar exemplar = existente.orElse(new Exemplar());
+                Exemplar exemplar = new Exemplar(); 
                 exemplar.setCod(codigoNoExcel);
                 
                 for (Map.Entry<String, String> entrada : mapaDeColunas.entrySet()) {
@@ -229,42 +271,6 @@ public class ImportacaoService {
                     }
                 }
                 exemplarService.salvar(exemplar);
-            }
-        }
-    }
-
-    public void aplicarMesclagemFinal(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, Map<String, String>> decisoes) throws IOException {
-        Map<String, List<Integer>> duplicatas = getMapaOcorrencias(nomeArquivo, mapaDeColunas);
-        Map<String, List<OpcaoConflito>> dadosBrutos = detalharConflitos(nomeArquivo, mapaDeColunas, duplicatas);
-
-        for (Map.Entry<String, List<OpcaoConflito>> entry : dadosBrutos.entrySet()) {
-            String codigo = entry.getKey();
-            List<OpcaoConflito> linhas = entry.getValue();
-            
-            if (decisoes.containsKey(codigo)) {
-                // Busca do banco para garantir update
-                Optional<Exemplar> existente = exemplarRepository.findById(codigo);
-                Exemplar exemplarFinal = existente.orElse(new Exemplar());
-                exemplarFinal.setCod(codigo);
-                
-                Map<String, String> decisoesDesteCodigo = decisoes.get(codigo);
-                Set<String> todosCampos = new HashSet<>();
-                for(OpcaoConflito op : linhas) todosCampos.addAll(op.getDados().keySet());
-
-                for (String campo : todosCampos) {
-                    if (decisoesDesteCodigo.containsKey(campo)) {
-                         preencherCampo(exemplarFinal, campo, decisoesDesteCodigo.get(campo));
-                    } else {
-                        for (OpcaoConflito linha : linhas) {
-                            String val = linha.getDados().get(campo);
-                            if (val != null && !val.trim().isEmpty()) {
-                                preencherCampo(exemplarFinal, campo, val);
-                                break; 
-                            }
-                        }
-                    }
-                }
-                exemplarService.salvar(exemplarFinal);
             }
         }
     }
@@ -315,9 +321,8 @@ public class ImportacaoService {
                     String nomeColuna = cell.getStringCellValue();
                     int indiceColuna = cell.getColumnIndex();
                     List<String> amostras = new ArrayList<>();
-                    int linhasVerificadas = 0;
                     int linhasEncontradas = 0;
-                    for (int i = 1; i <= sheet.getLastRowNum() && linhasEncontradas < 3 && linhasVerificadas < 100; i++) {
+                    for (int i = 1; i <= sheet.getLastRowNum() && linhasEncontradas < 3 && i < 100; i++) {
                         Row rowData = sheet.getRow(i);
                         if (rowData != null) {
                             Cell cellData = rowData.getCell(indiceColuna);
@@ -327,7 +332,6 @@ public class ImportacaoService {
                                 linhasEncontradas++;
                             }
                         }
-                        linhasVerificadas++;
                     }
                     colunas.add(new ColunaExcelDTO(nomeColuna, amostras));
                 }
