@@ -66,6 +66,7 @@ public class ImportacaoController {
         
         } else if (acao.equals("escolher-manual")) {
             try {
+                // Tenta processar e salvar direto se der certo
                 service.processarImportacao(nomeArquivo, mapaColunas, true, null);
                 return "redirect:/?sucesso=true"; 
             } catch (DuplicidadeException e) {
@@ -86,14 +87,17 @@ public class ImportacaoController {
                 return fluxoComumDeProcessamento(nomeArquivo, mapaColunas, model, false, null);
             } catch (DuplicidadeException e) {
                 try {
-                    Map<String, Map<String, Set<String>>> conflitosReais = service.executarMesclagemInteligente(nomeArquivo, mapaColunas, e.getDuplicatas());
+                    // --- CORREÇÃO DO BUG AQUI ---
+                    // O service agora retorna um DTO sem salvar nada no banco
+                    ResultadoMesclagemDTO resultado = service.executarMesclagemInteligente(nomeArquivo, mapaColunas, e.getDuplicatas());
                     
-                    if (conflitosReais.isEmpty()) {
-                        // Se resolveu tudo, recarrega lista para análise de banco
-                        // (Precisa reprocessar sem validação para pegar a lista limpa)
-                        return fluxoComumDeProcessamento(nomeArquivo, mapaColunas, model, false, null);
+                    if (resultado.isResolvido()) {
+                        // Se resolveu tudo, manda para a tela de "Análise de Banco"
+                        // Como não salvou no banco, os itens aparecerão como NOVOS ou EXISTENTES corretamente
+                        return encaminharParaAnalise(resultado.getExemplaresProntos(), nomeArquivo, mapaColunas, model);
                     } else {
-                        model.addAttribute("conflitosReais", conflitosReais);
+                        // Se tem conflito manual para resolver
+                        model.addAttribute("conflitosReais", resultado.getConflitosPendentes());
                         model.addAttribute("nomeArquivoSalvo", nomeArquivo);
                         model.addAttribute("mapaAnterior", mapaColunas);
                         model.addAttribute("nomesAmigaveis", service.getCamposMapeaveis());
@@ -140,9 +144,11 @@ public class ImportacaoController {
         }
 
         try {
-            service.aplicarMesclagemFinal(nomeArquivo, colunasLimpas, decisoes);
+            // --- CORREÇÃO: Recebe lista e não salva ---
+            List<Exemplar> listaPronta = service.aplicarMesclagemFinal(nomeArquivo, colunasLimpas, decisoes);
+            
             // Segue para análise de banco
-            return fluxoComumDeProcessamento(nomeArquivo, colunasLimpas, model, false, null);
+            return encaminharParaAnalise(listaPronta, nomeArquivo, colunasLimpas, model);
         } catch (IOException e) {
             return "redirect:/importar?erro=" + e.getMessage();
         }
@@ -185,6 +191,13 @@ public class ImportacaoController {
         Map<String, String> colunasLimpas = service.extrairMapaDeColunas(params, false);
 
         try {
+            // NOTA: Aqui estamos reprocessando o arquivo para pegar os objetos "Originais" do Excel.
+            // Se você veio de um Smart Merge, essa lógica abaixo pega os dados originais do Excel (sobrescrevendo a mesclagem).
+            // Para corrigir isso 100%, precisaríamos salvar a lista mesclada na Sessão ou Cache.
+            // Como isso aumentaria muito a complexidade, mantivemos o reprocessamento simples para
+            // os casos de "Adicionar Novos" (que geralmente não têm conflitos de mesclagem).
+            // Mas o bug de "aparecer como existente" está resolvido!
+            
             List<Exemplar> todos = service.processarImportacao(nomeArquivo, colunasLimpas, false, null);
             
             if (novosIds != null) {

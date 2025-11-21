@@ -32,6 +32,8 @@ public class ImportacaoService {
     @Autowired
     private MesclagemService mesclagemService;
 
+    // --- UTILITÁRIOS DE VIEW ---
+
     public Map<String, String> getCamposMapeaveis() {
         return mapeamentoService.getCamposMapeaveis();
     }
@@ -57,6 +59,7 @@ public class ImportacaoService {
         return mapaLimpo;
     }
 
+    // --- DELEGATION ---
     public List<String> lerCabecalhos(MultipartFile arquivo) throws IOException {
         return excelHelper.lerCabecalhos(arquivo);
     }
@@ -76,6 +79,7 @@ public class ImportacaoService {
         exemplarRepository.saveAll(lista);
     }
 
+    // --- PROCESSAMENTO PADRÃO ---
     public List<Exemplar> processarImportacao(String nomeArquivo, Map<String, String> mapaDeColunas, boolean verificarDuplicidade, Map<String, Integer> linhasEscolhidas) throws IOException {
         File arquivo = new File(System.getProperty("java.io.tmpdir"), nomeArquivo);
         List<Exemplar> exemplaresProcessados = new ArrayList<>();
@@ -114,13 +118,15 @@ public class ImportacaoService {
         }
         return exemplaresProcessados;
     }
+
+    // --- DELEGATION PARA MESCLAGEM (COM NOVOS TIPOS DE RETORNO) ---
     
-    public Map<String, Map<String, Set<String>>> executarMesclagemInteligente(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, List<Integer>> duplicatas) throws IOException {
+    public ResultadoMesclagemDTO executarMesclagemInteligente(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, List<Integer>> duplicatas) throws IOException {
         return mesclagemService.executarMesclagemInteligente(nomeArquivo, mapaDeColunas, duplicatas);
     }
 
-    public void aplicarMesclagemFinal(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, Map<String, String>> decisoes) throws IOException {
-        mesclagemService.aplicarMesclagemFinal(nomeArquivo, mapaDeColunas, decisoes);
+    public List<Exemplar> aplicarMesclagemFinal(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, Map<String, String>> decisoes) throws IOException {
+        return mesclagemService.aplicarMesclagemFinal(nomeArquivo, mapaDeColunas, decisoes);
     }
     
     public Map<String, List<OpcaoConflito>> detalharConflitos(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, List<Integer>> duplicatas) throws IOException {
@@ -130,6 +136,8 @@ public class ImportacaoService {
     public Map<String, Set<String>> analisarDivergencias(Map<String, List<OpcaoConflito>> detalhes) {
         return mesclagemService.analisarDivergencias(detalhes);
     }
+
+    // --- PRIVADOS ---
 
     private void verificarDuplicatasAntesDeSalvar(File arquivo, Map<String, String> mapaDeColunas) throws IOException {
         String nomeColunaCodigo = mapaDeColunas.get("cod");
