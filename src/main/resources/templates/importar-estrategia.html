@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Estratégia de Atualização</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <style>
+        /* --- Layout da Tabela --- */
+        .row-banco { background-color: #f9f9f9; color: #7f8c8d; font-size: 13px; }
+        .row-excel { background-color: #f0f9ff; color: #2c3e50; font-weight: 500; border-bottom: 2px solid #dcdcdc; font-size: 14px; }
+        
+        .badge-origem { 
+            font-size: 10px; text-transform: uppercase; padding: 3px 6px; border-radius: 3px; font-weight: bold; display: inline-block; width: 50px; text-align: center;
+        }
+        .badge-banco { background: #95a5a6; color: #fff; }
+        .badge-excel { background: #3498db; color: #fff; }
+
+        /* --- Coluna Fixa de Decisão --- */
+        .col-decisao {
+            position: sticky; left: 0; z-index: 20; 
+            background-color: #fff; 
+            box-shadow: 4px 0 8px -2px rgba(0,0,0,0.1);
+            width: 200px; min-width: 200px; /* Largura fixa ajustada */
+            vertical-align: middle;
+            padding: 10px !important;
+            border-right: 1px solid #dcdcdc;
+        }
+        
+        /* Header da coluna de decisão */
+        th.col-decisao {
+            background-color: #f8f9fa;
+            z-index: 30;
+            text-align: center;
+            vertical-align: top; /* Alinha topo para garantir layout */
+        }
+
+        /* --- Cards de Seleção (Radio) --- */
+        .wrapper-decisao {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+
+        .radio-card {
+            display: flex; align-items: center;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #fff;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .radio-card:hover {
+            background-color: #f4faff;
+            border-color: #b6d4fe;
+        }
+
+        .radio-card:has(input:checked) {
+            background-color: #e8f4fd;
+            border-color: #3498db;
+            color: #2980b9;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+        }
+
+        .radio-card input {
+            margin-right: 10px;
+            accent-color: #3498db;
+            transform: scale(1.2);
+        }
+
+        /* --- Botões de Ação em Massa (Header) --- */
+        .mass-actions-container {
+            display: flex;
+            flex-direction: column; /* Empilha um no outro */
+            gap: 5px;             /* Espaço entre eles */
+            margin-top: 5px;
+        }
+
+        .btn-mass-action {
+            display: block; width: 100%;
+            padding: 8px; 
+            border: 1px solid #ddd; border-radius: 4px;
+            background: #fff; color: #555;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            text-align: center; /* Centralizado */
+            transition: all 0.1s;
+        }
+        .btn-mass-action:hover { background: #eee; color: #333; }
+        .btn-mass-overwrite:hover { border-color: #3498db; color: #3498db; background: #f0f9ff; }
+        .btn-mass-smart:hover { border-color: #9b59b6; color: #9b59b6; background: #fbf4ff; }
+
+        .diff-cell { color: #e67e22; background-color: #fffdf5; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container" style="border-left: 5px solid #f39c12;">
+        <h1 style="color: #e67e22;">🔄 Atualizar Registros <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Decisão Estratégica</span></h1>
+    </div>
+
+    <div class="grupo-campos">
+        <p style="margin: 0; color: #555;">
+            Existem <strong><span th:text="${comparacoes.size()}"></span></strong> registros em conflito com o banco de dados.
+            <br>Compare os valores abaixo e decida como deseja salvar cada um.
+        </p>
+    </div>
+
+    <form th:action="@{/importar/decisao-estrategia}" method="post">
+        
+        <input type="hidden" name="nomeArquivo" th:value="${nomeArquivoSalvo}">
+        
+        <th:block th:if="${novosIdsPendentes != null}">
+            <th:block th:each="novoId : ${novosIdsPendentes}">
+                <input type="hidden" name="novosIdsPendentes" th:value="${novoId}">
+            </th:block>
+        </th:block>
+
+        <div class="card-tabela" style="max-height: 70vh; overflow: hidden; display: flex; flex-direction: column;">
+            
+            <div class="tabela-container" style="flex: 1; overflow: auto;">
+                <table class="tabela-larga" style="min-width: max-content;"> 
+                    <thead>
+                        <tr>
+                            <th class="col-decisao">
+                                <div style="margin-bottom: 8px; color: #333; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Aplicar a Todos</div>
+                                
+                                <div class="mass-actions-container">
+                                    <button type="button" class="btn-mass-action btn-mass-overwrite" onclick="selecionarTodos('OVERWRITE')">
+                                        Todos Substituir
+                                    </button>
+                                    <button type="button" class="btn-mass-action btn-mass-smart" onclick="selecionarTodos('SMART_MERGE')">
+                                        Todos Mesclar
+                                    </button>
+                                </div>
+                            </th>
+                            <th style="width: 80px; text-align: center;">Origem</th>
+                            
+                            <th th:each="campo : ${camposHelper.todosCampos}" th:text="${campo.value}">Campo</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody th:each="comp : ${comparacoes}">
+                        
+                        <tr class="row-banco">
+                            <td class="col-decisao" rowspan="2">
+                                <div class="wrapper-decisao">
+                                    
+                                    <label class="radio-card" title="Apaga o dado antigo e salva o do Excel">
+                                        <input type="radio" th:name="'acao_' + ${comp.codigo}" value="OVERWRITE" checked>
+                                        <span>Substituir (Excel)</span>
+                                    </label>
+                                    
+                                    <label class="radio-card" title="Combina as informações vazias">
+                                        <input type="radio" th:name="'acao_' + ${comp.codigo}" value="SMART_MERGE">
+                                        <span>Mesclar (Smart)</span>
+                                    </label>
+
+                                </div>
+                            </td>
+                            
+                            <td style="text-align: center; vertical-align: middle;">
+                                <span class="badge-origem badge-banco">Banco</span>
+                            </td>
+                            
+                            <td th:each="campo : ${camposHelper.todosCampos}" 
+                                th:text="${comp.antigo != null ? comp.antigo.__${campo.key}__ : ''}">
+                            </td>
+                        </tr>
+
+                        <tr class="row-excel">
+                            <td style="text-align: center; vertical-align: middle;">
+                                <span class="badge-origem badge-excel">Excel</span>
+                            </td>
+                            
+                            <td th:each="campo : ${camposHelper.todosCampos}" 
+                                th:text="${comp.novo != null ? comp.novo.__${campo.key}__ : ''}"
+                                th:classappend="${(comp.antigo != null and comp.novo != null and (comp.antigo.__${campo.key}__ ?: '') != (comp.novo.__${campo.key}__ ?: '')) ? 'diff-cell' : ''}">
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; padding-bottom: 40px;">
+            <a href="/importar" class="btn btn-paginacao" style="color: #e74c3c;">Cancelar Tudo</a>
+            <button type="submit" class="btn btn-salvar" style="background-color: #f39c12; box-shadow: 0 4px 6px rgba(243, 156, 18, 0.3);">
+                Confirmar e Salvar ✅
+            </button>
+        </div>
+
+    </form>
+
+    <script>
+        function selecionarTodos(valor) {
+            let radios = document.querySelectorAll('input[type="radio"][value="' + valor + '"]');
+            radios.forEach(r => r.checked = true);
+        }
+    </script>
+
+</body>
+</html>
