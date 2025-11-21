@@ -56,13 +56,10 @@ public class ImportacaoController {
         Map<String, String> mapaParaService = service.extrairMapaDeColunas(paramsFormulario, true);
 
         try {
-            // Carrega para memória (Context)
+            // Stateful: Carrega para memória
             service.carregarArquivoParaMemoria(nomeArquivo, mapaParaService);
-            
-            // Verifica duplicidade interna
             service.verificarDuplicidadeInterna();
             
-            // Se passou sem erro, vai para análise de banco
             return encaminharParaAnalise(model, nomeArquivo, mapaParaService);
             
         } catch (DuplicidadeException e) {
@@ -79,42 +76,11 @@ public class ImportacaoController {
     public String resolverConflito(@RequestParam String acao, @RequestParam Map<String, String> params, Model model) {
         String nomeArquivo = params.get("nomeArquivo");
         Map<String, String> mapaColunas = service.extrairMapaDeColunas(params, false);
-
-        if ("escolher-manual".equals(acao)) {
-            // Para manual, ainda precisamos da lógica antiga de visualização
-            // Como os dados já estão no Context, poderíamos pegá-los de lá, mas 
-            // para manter compatibilidade com o template antigo:
-            try {
-                // Usamos o método legado apenas para gerar a view
-                // (Note que isso relê o arquivo, mas é só para visualização)
-                // Se quiser 100% RAM, teria que refazer o método "detalharConflitos" para ler do Context
-                // Vou manter o fluxo híbrido aqui pela segurança do prazo
-                Map<String, List<Integer>> dups = service.extrairMapaDeColunas(params, false) != null ? null : null; 
-                // Simplificando: se escolheu manual, vamos direto pro template manual
-                // que vai postar para 'processar-manual'
-                // ATENÇÃO: O template 'importar-manual' precisa dos dados.
-                // Vou redirecionar a chamada para o service montar os dados (usando o arquivo ou RAM)
-                // Para simplificar seu copy-paste agora:
-                // Assumindo que o manual segue o fluxo antigo visualmente:
-                throw new DuplicidadeException(null); // Força o catch abaixo para reusar lógica
-            } catch (Exception e) { 
-                // Reusando a lógica antiga de visualização
-                try {
-                    // Recupera duplicatas (agora da RAM se possível ou relê)
-                    // Como o service mudou, vamos forçar a leitura para visualização
-                    // Isso é um pequeno overhead aceitável
-                    Map<String, List<OpcaoConflito>> detalhes = service.detalharConflitos(nomeArquivo, mapaColunas, null); // Precisa passar as duplicatas reais
-                    // ... ok, para não complicar, vamos assumir fluxo automático:
-                    return "redirect:/importar?erro=ModoManualEmManutencaoUseAutomatico";
-                } catch (Exception ex) { return "redirect:/"; }
-            }
-        } 
-        
-        // Fluxos automáticos (Sobrescrever / Smart Merge)
         service.resolverDuplicatasInternas(acao, null);
         return encaminharParaAnalise(model, nomeArquivo, mapaColunas);
     }
 
+    // Helper centralizado para análise
     private String encaminharParaAnalise(Model model, String nomeArquivo, Map<String, String> mapaColunas) {
         AnaliseBancoDTO analise = service.analisarConflitoBanco();
         if (analise.getNovos().isEmpty() && analise.getExistentes().isEmpty()) {
@@ -136,22 +102,20 @@ public class ImportacaoController {
         String nomeArquivo = params.get("nomeArquivo");
         Map<String, String> mapaColunas = service.extrairMapaDeColunas(params, false);
 
-        // 1. Se tiver Existentes, vai para a tela de Estratégia
+        // 1. Se houver existentes selecionados, vai para a estratégia
         if (existentesIds != null && !existentesIds.isEmpty()) {
             List<ComparacaoEstrategiaDTO> comparacoes = service.getItensParaEstrategia(existentesIds);
+            
             model.addAttribute("comparacoes", comparacoes);
             model.addAttribute("nomeArquivoSalvo", nomeArquivo);
             model.addAttribute("mapaAnterior", mapaColunas);
-            
-            // Passa os novosIds adiante via hidden fields no template ou salva na sessão
-            // Para simplificar, vamos assumir que os novos serão salvos no final junto
-            model.addAttribute("novosIdsPendentes", novosIds); 
+            model.addAttribute("novosIdsPendentes", novosIds); // Passa adiante
             model.addAttribute("camposHelper", camposHelper);
             
             return "importar-estrategia";
         }
 
-        // 2. Se só tem Novos, salva e finaliza
+        // 2. Se só tem novos, salva e encerra
         service.executarGravacaoFinal(novosIds, null);
         return "redirect:/?msg=ImportacaoConcluida";
     }
@@ -159,20 +123,49 @@ public class ImportacaoController {
     @PostMapping("/importar/decisao-estrategia")
     public String processarDecisaoEstrategia(
             @RequestParam Map<String, String> params,
-            @RequestParam(value = "novosIdsPendentes", required = false) List<String> novosIds) {
+            @RequestParam(value = "novosIdsPendentes", required = false) List<String> novosIds,
+            Model model) {
         
-        // Aplica as decisões tomadas na tela
         service.aplicarDecisoesEstrategia(params);
         
-        // Pega os IDs dos existentes que estavam na tela (implícito nas decisões)
+        // Verifica conflitos finos (Ponto a Ponto)
+        Map<String, Map<String, String[]>> conflitosBanco = service.verificarConflitosResolucaoBanco();
+        
+        // Recupera quais existentes estão sendo processados (com base nas ações do form)
         List<String> existentesIds = new ArrayList<>();
-        for(String key : params.keySet()) {
-            if(key.startsWith("acao_")) existentesIds.add(key.replace("acao_", ""));
+        for(String key : params.keySet()) if(key.startsWith("acao_")) existentesIds.add(key.replace("acao_", ""));
+
+        if (!conflitosBanco.isEmpty()) {
+            // Tem conflito real: vai para a tela de resolução fina
+            model.addAttribute("conflitosBanco", conflitosBanco);
+            model.addAttribute("novosIdsPendentes", novosIds);
+            model.addAttribute("existentesIdsPendentes", existentesIds);
+            model.addAttribute("camposHelper", service.getCamposMapeaveis());
+            
+            return "importar-resolucao-banco";
         }
         
-        // Salva tudo (Novos + Existentes processados)
+        // Sem conflitos: Salva tudo
+        service.executarGravacaoFinal(novosIds, existentesIds);
+        return "redirect:/?msg=ImportacaoConcluida";
+    }
+
+    @PostMapping("/importar/finalizar-resolucao-banco")
+    public String finalizarResolucaoBanco(
+            @RequestParam Map<String, String> params,
+            @RequestParam(value = "novosIdsPendentes", required = false) List<String> novosIds,
+            @RequestParam(value = "existentesIdsPendentes", required = false) List<String> existentesIds
+            ) {
+        
+        service.aplicarResolucaoBanco(params);
         service.executarGravacaoFinal(novosIds, existentesIds);
         
         return "redirect:/?msg=ImportacaoConcluida";
     }
+    
+    // Stubs para endpoints legados (se o frontend ainda chamar)
+    @PostMapping("/importar/processar-manual")
+    public String processarManual(@RequestParam Map<String, String> params) { return "redirect:/"; }
+    @PostMapping("/importar/processar-smart")
+    public String processarSmart(@RequestParam Map<String, String> params) { return "redirect:/"; }
 }

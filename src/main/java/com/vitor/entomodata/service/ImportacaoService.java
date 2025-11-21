@@ -33,7 +33,7 @@ public class ImportacaoService {
     private MesclagemService mesclagemService;
     
     @Autowired
-    private ImportacaoContext context; // Nossa "Planilha na RAM"
+    private ImportacaoContext context;
 
     // --- VIEW HELPERS ---
     public Map<String, String> getCamposMapeaveis() { return mapeamentoService.getCamposMapeaveis(); }
@@ -44,7 +44,7 @@ public class ImportacaoService {
         Map<String, String> mapaLimpo = new LinkedHashMap<>();
         for(Map.Entry<String, String> e : params.entrySet()) {
             String k = e.getKey();
-            if(!k.startsWith("nomeArquivo") && !k.startsWith("novos") && !k.startsWith("existentes") && !k.startsWith("acao") && !k.startsWith("escolha")) {
+            if(!k.startsWith("nomeArquivo") && !k.startsWith("novos") && !k.startsWith("existentes") && !k.startsWith("acao") && !k.startsWith("escolha") && !k.startsWith("resolucao")) {
                 if (e.getValue() != null && !e.getValue().isEmpty()) mapaLimpo.put(k, e.getValue());
             }
         }
@@ -60,7 +60,6 @@ public class ImportacaoService {
 
     // --- ETAPA 1: CARREGAR ---
     public void carregarArquivoParaMemoria(String nomeArquivo, Map<String, String> mapaColunas) throws IOException {
-        // Nota: O arquivo físico precisa existir no temp dir, salvo pelo controller no upload inicial
         java.io.File arquivoFisico = new java.io.File(System.getProperty("java.io.tmpdir"), nomeArquivo);
         
         List<ImportacaoItem> itensCarregados = new ArrayList<>();
@@ -99,7 +98,7 @@ public class ImportacaoService {
         
         for (int i = 0; i < itens.size(); i++) {
             String cod = itens.get(i).getCodigo();
-            mapaOcorrencias.computeIfAbsent(cod, k -> new ArrayList<>()).add(i + 1); // +1 para linha humana
+            mapaOcorrencias.computeIfAbsent(cod, k -> new ArrayList<>()).add(i + 1);
         }
         
         Map<String, List<Integer>> apenasDuplicados = mapaOcorrencias.entrySet().stream()
@@ -122,19 +121,13 @@ public class ImportacaoService {
             if (grupo.size() == 1) {
                 listaFinal.add(grupo.get(0));
             } else {
-                // Resolvendo conflito interno
                 if ("sobrescrever".equals(acao)) {
-                    listaFinal.add(grupo.get(grupo.size() - 1)); // Último vence
+                    listaFinal.add(grupo.get(grupo.size() - 1));
                 } else if ("smart-merge".equals(acao)) {
-                    // Usa o último como base (simplificado conforme combinado)
                     ImportacaoItem itemMesclado = grupo.get(grupo.size() - 1);
                     itemMesclado.setMesclado(true);
                     listaFinal.add(itemMesclado);
-                } else if ("escolher-manual".equals(acao)) {
-                    // Lógica manual: pega o índice escolhido pelo usuário
-                    String cod = entry.getKey();
-                    // Implementar lógica de buscar pelo índice/linha se necessário
-                    // Por padrão pega o último se não achar
+                } else {
                     listaFinal.add(grupo.get(grupo.size() - 1));
                 }
             }
@@ -194,6 +187,46 @@ public class ImportacaoService {
         }
     }
 
+    // --- ETAPA 5: RESOLUÇÃO FINA (PONTO A PONTO) ---
+    public Map<String, Map<String, String[]>> verificarConflitosResolucaoBanco() {
+        Map<String, Map<String, String[]>> todosConflitos = new HashMap<>();
+        
+        for (ImportacaoItem item : context.getItens()) {
+            if (item.getAcao() == ImportacaoItem.AcaoImportacao.MESCLAR && item.isExisteNoBanco()) {
+                Map<String, String[]> conflitosDesteItem = mesclagemService.analisarConflitosPontoAPonto(
+                    item.getExemplarBanco(),
+                    item.getExemplar()
+                );
+                if (!conflitosDesteItem.isEmpty()) {
+                    todosConflitos.put(item.getCodigo(), conflitosDesteItem);
+                }
+            }
+        }
+        return todosConflitos;
+    }
+
+    public void aplicarResolucaoBanco(Map<String, String> resolucoes) {
+        for (Map.Entry<String, String> entry : resolucoes.entrySet()) {
+            String key = entry.getKey();
+            String valor = entry.getValue();
+            
+            if (key.startsWith("resolucao_")) {
+                String raw = key.replace("resolucao_", "");
+                int lastUnderscore = raw.lastIndexOf("_");
+                
+                if (lastUnderscore > 0) {
+                    String codigo = raw.substring(0, lastUnderscore);
+                    String campo = raw.substring(lastUnderscore + 1);
+                    
+                    ImportacaoItem item = context.getItemPorCodigo(codigo);
+                    if (item != null) {
+                        mapeamentoService.preencherCampo(item.getExemplar(), campo, valor);
+                    }
+                }
+            }
+        }
+    }
+
     // --- ETAPA FINAL: SALVAR ---
     public void executarGravacaoFinal(List<String> idsNovosParaSalvar, List<String> idsExistentesParaProcessar) {
         List<Exemplar> batchSalvar = new ArrayList<>();
@@ -202,12 +235,12 @@ public class ImportacaoService {
             boolean salvar = false;
             
             if (!item.isExisteNoBanco()) {
-                // É novo: salva se estiver na lista de selecionados
                 if (idsNovosParaSalvar != null && idsNovosParaSalvar.contains(item.getCodigo())) {
                     salvar = true;
                 }
             } else {
-                // Já existe: salva se estiver na lista de processamento E tiver ação definida (Sobrescrever/Mesclar)
+                // Salva se estiver processado na estratégia e tiver ação
+                // Nota: idsExistentesParaProcessar são aqueles que vieram das telas de estratégia
                 if (idsExistentesParaProcessar != null && idsExistentesParaProcessar.contains(item.getCodigo())) {
                     if (item.getAcao() == ImportacaoItem.AcaoImportacao.SOBRESCREVER || 
                         item.getAcao() == ImportacaoItem.AcaoImportacao.MESCLAR) {
@@ -227,11 +260,9 @@ public class ImportacaoService {
         context.limpar();
     }
     
-    // Delegates auxiliares para manter compatibilidade se necessário
-    public Map<String, List<OpcaoConflito>> detalharConflitos(String nomeArquivo, Map<String, String> colunas, Map<String, List<Integer>> dups) throws IOException {
-        return mesclagemService.detalharConflitos(nomeArquivo, colunas, dups);
-    }
-    public Map<String, Set<String>> analisarDivergencias(Map<String, List<OpcaoConflito>> detalhes) {
-        return mesclagemService.analisarDivergencias(detalhes);
-    }
+    // Delegates (Mantendo para não quebrar contratos antigos se chamados)
+    public ResultadoMesclagemDTO executarMesclagemInteligente(String n, Map<String, String> m, Map<String, List<Integer>> d) throws IOException { return mesclagemService.executarMesclagemInteligente(n, m, d); }
+    public List<Exemplar> aplicarMesclagemFinal(String n, Map<String, String> m, Map<String, Map<String, String>> d) throws IOException { return mesclagemService.aplicarMesclagemFinal(n, m, d); }
+    public Map<String, List<OpcaoConflito>> detalharConflitos(String n, Map<String, String> m, Map<String, List<Integer>> d) throws IOException { return mesclagemService.detalharConflitos(n, m, d); }
+    public Map<String, Set<String>> analisarDivergencias(Map<String, List<OpcaoConflito>> d) { return mesclagemService.analisarDivergencias(d); }
 }

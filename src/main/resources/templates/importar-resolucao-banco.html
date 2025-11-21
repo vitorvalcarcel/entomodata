@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Resolução de Conflitos</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <style>
+        .conflito-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-left: 5px solid #9b59b6; /* Roxo Smart */
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .conflito-header {
+            padding: 12px 20px;
+            background: #fdfdfd;
+            border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .conflito-body { padding: 20px; }
+        
+        .campo-row {
+            display: grid; 
+            grid-template-columns: 150px 1fr 1fr; 
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #eee;
+            align-items: center;
+        }
+        .campo-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .label-campo { font-weight: 700; color: #555; text-transform: uppercase; font-size: 12px; }
+        
+        .opcao-valor {
+            border: 1px solid #ccc; border-radius: 6px; padding: 10px;
+            cursor: pointer; transition: all 0.2s; position: relative;
+            background: #fff;
+        }
+        .opcao-valor:hover { border-color: #3498db; background: #f0f9ff; }
+        
+        /* Estilo Selecionado */
+        .opcao-valor:has(input:checked) {
+            border-color: #3498db; background-color: #e8f4fd;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.15);
+        }
+        .opcao-valor:has(input:checked)::after {
+            content: '✅'; position: absolute; top: -8px; right: -8px; font-size: 14px;
+            background: #fff; border-radius: 50%;
+        }
+        
+        .titulo-valor { display: block; font-size: 10px; color: #999; margin-bottom: 4px; text-transform: uppercase; font-weight: bold; }
+        .texto-valor { display: block; font-weight: 600; color: #2c3e50; font-size: 14px; }
+        
+        .radio-oculto { display: none; }
+        
+        /* Botões de cabeçalho global */
+        .controles-globais {
+            background: #fff; padding: 15px; border-radius: 6px; margin-bottom: 20px;
+            display: flex; gap: 10px; align-items: center; border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container" style="border-left: 5px solid #9b59b6;">
+        <h1 style="color: #8e44ad;">🧠 Resolução Final <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Decisão Campo a Campo</span></h1>
+    </div>
+
+    <div class="grupo-campos">
+        <p style="margin: 0; color: #555;">
+            O sistema mesclou automaticamente os dados vazios. 
+            <br>Porém, os itens abaixo apresentam <strong>divergências</strong> reais entre o Banco e o Excel. Decida qual valor manter.
+        </p>
+    </div>
+    
+    <div class="controles-globais">
+        <span style="font-weight: bold; color: #555; font-size: 13px; margin-right: 10px;">Aplicar a TODOS:</span>
+        <button type="button" class="btn btn-paginacao" onclick="selecionarTodos('banco')">Manter todos do Banco 💾</button>
+        <button type="button" class="btn btn-paginacao" onclick="selecionarTodos('excel')">Usar todos do Excel 📂</button>
+    </div>
+
+    <form th:action="@{/importar/finalizar-resolucao-banco}" method="post">
+        
+        <th:block th:if="${novosIdsPendentes != null}">
+            <th:block th:each="id : ${novosIdsPendentes}">
+                <input type="hidden" name="novosIdsPendentes" th:value="${id}">
+            </th:block>
+        </th:block>
+        <th:block th:if="${existentesIdsPendentes != null}">
+            <th:block th:each="id : ${existentesIdsPendentes}">
+                <input type="hidden" name="existentesIdsPendentes" th:value="${id}">
+            </th:block>
+        </th:block>
+
+        <div th:each="itemEntry : ${conflitosBanco}" class="conflito-card">
+            
+            <div class="conflito-header">
+                <span>Conflito no Exemplar: <strong th:text="${itemEntry.key}" style="color: #8e44ad;">A001</strong></span>
+            </div>
+            
+            <div class="conflito-body">
+                <div th:each="campoEntry : ${itemEntry.value}" class="campo-row">
+                    
+                    <div class="label-campo" th:text="${camposHelper.get(campoEntry.key) ?: campoEntry.key}">Espécie</div>
+                    
+                    <label class="opcao-valor">
+                        <span class="titulo-valor">Do Banco (Atual)</span>
+                        <span class="texto-valor" th:text="${campoEntry.value[0]}">Valor Antigo</span>
+                        <input type="radio" 
+                               th:name="'resolucao_' + ${itemEntry.key} + '_' + ${campoEntry.key}" 
+                               th:value="${campoEntry.value[0]}" 
+                               class="radio-oculto radio-banco"
+                               checked>
+                    </label>
+                    
+                    <label class="opcao-valor">
+                        <span class="titulo-valor">Do Excel (Novo)</span>
+                        <span class="texto-valor" th:text="${campoEntry.value[1]}">Valor Novo</span>
+                        <input type="radio" 
+                               th:name="'resolucao_' + ${itemEntry.key} + '_' + ${campoEntry.key}" 
+                               th:value="${campoEntry.value[1]}" 
+                               class="radio-oculto radio-excel">
+                    </label>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: right; padding-bottom: 50px;">
+            <button type="submit" class="btn btn-salvar" style="background-color: #9b59b6;">Salvar Tudo e Finalizar 🚀</button>
+        </div>
+
+    </form>
+
+    <script>
+        function selecionarTodos(tipo) {
+            let classe = tipo === 'banco' ? '.radio-banco' : '.radio-excel';
+            let radios = document.querySelectorAll(classe);
+            radios.forEach(r => r.checked = true);
+        }
+    </script>
+
+</body>
+</html>
