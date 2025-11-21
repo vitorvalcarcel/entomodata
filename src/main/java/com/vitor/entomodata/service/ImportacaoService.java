@@ -28,6 +28,72 @@ public class ImportacaoService {
     
     @Autowired
     private ExcelHelper excelHelper;
+
+    // --- UTILITÁRIOS DE VIEW (Movidos do Controller) ---
+
+    public Map<String, String> getCamposMapeaveis() {
+        Map<String, String> campos = new LinkedHashMap<>();
+        campos.put("cod", "Código (ID)");
+        campos.put("especie", "Espécie");
+        campos.put("familia", "Família");
+        campos.put("subfamilia", "Subfamília");
+        campos.put("tribo", "Tribo");
+        campos.put("subtribo", "Subtribo");
+        campos.put("genero", "Gênero");
+        campos.put("subgenero", "Subgênero");
+        campos.put("subespecie", "Subespécie");
+        campos.put("autor", "Autor");
+        campos.put("determinador", "Determinador");
+        campos.put("sexo", "Sexo");
+        campos.put("especieVegetalAssociada", "Espécie Vegetal Associada");
+        campos.put("pais", "País da Coleta");
+        campos.put("estado", "Estado da Coleta");
+        campos.put("cidade", "Cidade/Município da Coleta");
+        campos.put("localidade", "Localidade Específica da Coleta");
+        campos.put("proprietarioDoLocalDeColeta", "Proprietário do Local da Coleta");
+        campos.put("bioma", "Bioma");
+        campos.put("latitude", "Latitude");
+        campos.put("longitude", "Longitude");
+        campos.put("data", "Data da Coleta");
+        campos.put("horarioColeta", "Horário da Coleta");
+        campos.put("coletor", "Coletor");
+        campos.put("metodoDeAquisicao", "Método de Coleta");
+        campos.put("gaveta", "Gaveta");
+        campos.put("caixa", "Caixa");
+        return campos;
+    }
+
+    // Limpa e prepara o mapa de colunas vindo do HTML
+    public Map<String, String> extrairMapaDeColunas(Map<String, String> params, boolean inverterChaveValor) {
+        Map<String, String> mapaLimpo = new LinkedHashMap<>();
+        
+        // 1. Filtra chaves de controle
+        for(Map.Entry<String, String> e : params.entrySet()) {
+            String k = e.getKey();
+            if(!k.equals("nomeArquivo") && !k.equals("novosSelecionados") && 
+               !k.equals("existentesSelecionados") && !k.equals("existentesIds") && 
+               !k.equals("acao") && !k.equals("escolhasManual") && !k.startsWith("decisao_") && !k.startsWith("escolha_")) {
+                
+                if (e.getValue() != null && !e.getValue().isEmpty()) {
+                    mapaLimpo.put(k, e.getValue());
+                }
+            }
+        }
+
+        // 2. Inverte se necessário (Para quando vem da tela de Seleção de Colunas)
+        // HTML: Key="NomeColunaExcel", Value="cod"  --->  Service quer: Key="cod", Value="NomeColunaExcel"
+        if (inverterChaveValor) {
+            Map<String, String> mapaInvertido = new LinkedHashMap<>();
+            for (Map.Entry<String, String> entry : mapaLimpo.entrySet()) {
+                mapaInvertido.put(entry.getValue(), entry.getKey());
+            }
+            return mapaInvertido;
+        }
+
+        return mapaLimpo;
+    }
+
+    // --- MÉTODOS DE LEITURA ---
     
     public List<String> lerCabecalhos(MultipartFile arquivo) throws IOException {
         return excelHelper.lerCabecalhos(arquivo);
@@ -36,6 +102,8 @@ public class ImportacaoService {
     public List<ColunaExcelDTO> analisarArquivoExcel(MultipartFile arquivo) throws IOException {
         return excelHelper.analisarArquivoComAmostras(arquivo);
     }
+
+    // --- LÓGICA DE NEGÓCIO ---
 
     public AnaliseBancoDTO analisarConflitosComBanco(List<Exemplar> listaDoExcel) {
         List<Exemplar> novos = new ArrayList<>();
@@ -102,6 +170,8 @@ public class ImportacaoService {
         return exemplaresProcessados;
     }
 
+    // --- MESCLAGEM INTELIGENTE (Lógica interna da planilha) ---
+
     public Map<String, Map<String, Set<String>>> executarMesclagemInteligente(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, List<Integer>> duplicatas) throws IOException {
         Set<Integer> linhasParaIgnorar = new HashSet<>();
         for (List<Integer> linhas : duplicatas.values()) linhasParaIgnorar.addAll(linhas);
@@ -120,7 +190,6 @@ public class ImportacaoService {
             
             Map<String, Set<String>> conflitosDesteCodigo = new HashMap<>();
             boolean temConflitoGeral = false;
-            
             Set<String> todosCampos = new HashSet<>();
             for(OpcaoConflito op : linhas) todosCampos.addAll(op.getDados().keySet());
 
@@ -132,7 +201,6 @@ public class ImportacaoService {
                 }
 
                 if (valoresDistintos.isEmpty()) {
-
                 } else if (valoresDistintos.size() == 1) {
                     preencherCampo(exemplarFinal, campo, valoresDistintos.iterator().next());
                 } else {
@@ -185,6 +253,8 @@ public class ImportacaoService {
         }
     }
 
+    // --- PRIVADOS ---
+
     private void salvarLinhasNaoDuplicadas(String nomeArquivo, Map<String, String> mapaDeColunas, Set<Integer> linhasParaIgnorar) throws IOException {
         File arquivo = new File(System.getProperty("java.io.tmpdir"), nomeArquivo);
         try (FileInputStream is = new FileInputStream(arquivo); Workbook workbook = new XSSFWorkbook(is)) {
@@ -208,6 +278,26 @@ public class ImportacaoService {
                 exemplarService.salvar(exemplar);
             }
         }
+    }
+
+    private Map<String, List<Integer>> getMapaOcorrencias(String nomeArquivo, Map<String, String> mapaDeColunas) throws IOException {
+        File arquivo = new File(System.getProperty("java.io.tmpdir"), nomeArquivo);
+        String nomeColunaCodigo = mapaDeColunas.get("cod");
+        Map<String, List<Integer>> mapa = new HashMap<>();
+        try (FileInputStream is = new FileInputStream(arquivo); Workbook workbook = new XSSFWorkbook(is)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            Map<String, Integer> indiceDasColunas = excelHelper.mapearIndicesColunas(sheet);
+            Integer idxCodigo = indiceDasColunas.get(nomeColunaCodigo);
+            if (idxCodigo == null) return mapa;
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                String cod = excelHelper.getValorCelula(row.getCell(idxCodigo)).trim();
+                if (!cod.isEmpty()) mapa.computeIfAbsent(cod, k -> new ArrayList<>()).add(i + 1);
+            }
+        }
+        return mapa.entrySet().stream().filter(e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public Map<String, List<OpcaoConflito>> detalharConflitos(String nomeArquivo, Map<String, String> mapaDeColunas, Map<String, List<Integer>> duplicatas) throws IOException {
@@ -287,26 +377,6 @@ public class ImportacaoService {
         if (!apenasDuplicados.isEmpty()) throw new DuplicidadeException(apenasDuplicados);
     }
     
-    private Map<String, List<Integer>> getMapaOcorrencias(String nomeArquivo, Map<String, String> mapaDeColunas) throws IOException {
-        File arquivo = new File(System.getProperty("java.io.tmpdir"), nomeArquivo);
-        String nomeColunaCodigo = mapaDeColunas.get("cod");
-        Map<String, List<Integer>> mapa = new HashMap<>();
-        try (FileInputStream is = new FileInputStream(arquivo); Workbook workbook = new XSSFWorkbook(is)) {
-            Sheet sheet = workbook.getSheetAt(0);
-            Map<String, Integer> indiceDasColunas = excelHelper.mapearIndicesColunas(sheet);
-            Integer idxCodigo = indiceDasColunas.get(nomeColunaCodigo);
-            if (idxCodigo == null) return mapa;
-
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
-                String cod = excelHelper.getValorCelula(row.getCell(idxCodigo)).trim();
-                if (!cod.isEmpty()) mapa.computeIfAbsent(cod, k -> new ArrayList<>()).add(i + 1);
-            }
-        }
-        return mapa.entrySet().stream().filter(e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
     private void preencherExemplarComLinha(Exemplar exemplar, Row row, Map<String, String> mapaDeColunas, Map<String, Integer> indiceDasColunas) {
         for (Map.Entry<String, String> entrada : mapaDeColunas.entrySet()) {
             String campoSistema = entrada.getKey();
