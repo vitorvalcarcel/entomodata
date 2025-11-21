@@ -1,7 +1,11 @@
 package com.vitor.entomodata.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.vitor.entomodata.model.Exemplar;
 import com.vitor.entomodata.service.ExemplarService;
 import com.vitor.entomodata.helper.CamposHelper;
+import com.vitor.entomodata.helper.ExcelHelper;
 
+import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +34,9 @@ public class ExemplarController {
     
     @Autowired
     private CamposHelper camposHelper;
+    
+    @Autowired
+    private ExcelHelper excelHelper;
 
     // Método auxiliar para injetar helpers em toda view
     private void adicionarHelpers(Model model) {
@@ -57,6 +68,22 @@ public class ExemplarController {
         model.addAttribute("filtro", filtro);
         model.addAttribute("sortField", sort);
         model.addAttribute("sortDir", dir);
+    }
+    
+    // === EXPORTAÇÃO ===
+    
+    @GetMapping("/exportar")
+    public ResponseEntity<InputStreamResource> exportarExcel() {
+        List<Exemplar> dados = service.buscarTodos();
+        ByteArrayInputStream in = excelHelper.gerarPlanilhaExemplares(dados, camposHelper.getTodosCampos());
+        
+        String dataHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"));
+        String nomeArquivo = "entomodata_export_" + dataHora + ".xlsx";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + nomeArquivo)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 
     // === CADASTRO (NOVO) ===

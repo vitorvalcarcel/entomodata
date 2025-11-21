@@ -15,10 +15,18 @@
         </div>
     </div>
 
-    <div style="margin-bottom: 20px;">
-        <a href="/novo" style="text-decoration: none;"><button class="btn btn-novo" style="margin-right: 10px;">+ Novo Exemplar</button></a>
-        <a href="/importar" style="text-decoration: none;"><button class="btn btn-importar" style="margin-right: 10px;">📂 Importar Excel</button></a>
-        <a href="/deletar" style="text-decoration: none;"><button class="btn btn-salvar" style="background-color: #e74c3c; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);">🗑️ Apagar em Massa</button></a>
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
+        <div>
+            <a href="/novo" style="text-decoration: none;"><button class="btn btn-novo" style="margin-right: 10px;">+ Novo Exemplar</button></a>
+            <a href="/importar" style="text-decoration: none;"><button class="btn btn-importar" style="margin-right: 10px;">📂 Importar Excel</button></a>
+            <a href="/deletar" style="text-decoration: none;"><button class="btn btn-salvar" style="background-color: #e74c3c; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);">🗑️ Apagar em Massa</button></a>
+        </div>
+        
+        <a href="/exportar" target="_blank" style="text-decoration: none;">
+            <button class="btn btn-salvar" style="background-color: #217346; box-shadow: 0 2px 4px rgba(33, 115, 70, 0.3);">
+                📊 Baixar Tudo (Excel)
+            </button>
+        </a>
     </div>
 
     <button id="btnFiltros" onclick="toggleFiltros()" class="btn btn-filtro"><span>🔍</span> Filtrar Dados</button>
