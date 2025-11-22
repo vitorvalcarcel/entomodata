@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sair do Sistema</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f6f8;">
+
+    <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 400px;">
+        <h1 style="color: #e74c3c; margin-top: 0;">🛑 Encerrar Sistema?</h1>
+        <p style="color: #555; font-size: 16px; line-height: 1.5;">
+            Você está prestes a desligar o servidor do <strong>EntomoData</strong>.
+            <br>Isso irá parar o banco de dados e fechar a conexão.
+        </p>
+        
+        <form th:action="@{/sistema/desligar}" method="post" style="margin-top: 30px;">
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a href="/" class="btn btn-paginacao">Cancelar</a>
+                <button type="submit" class="btn btn-salvar" style="background-color: #e74c3c; border: none; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);">
+                    Sim, Desligar Tudo
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

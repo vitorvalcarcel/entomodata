@@ -10,14 +10,20 @@
             <h1>🐝 EntomoData <span style="font-weight: normal; font-size: 0.8em; color: #7f8c8d;">| Acervo Completo</span></h1>
         </div>
         
-        <div>
-            <span style="font-size: 14px; color: #666; margin-right: 10px;">Exibir:</span>
-            <select id="sizeSelect" onchange="mudarTamanho()" class="seletor-pagina">
-                <option value="50" th:selected="${pageSize == 50}">50 itens</option>
-                <option value="100" th:selected="${pageSize == 100}">100 itens</option>
-                <option value="1000" th:selected="${pageSize == 1000}">1000 itens</option>
-                <option value="10000" th:selected="${pageSize == 10000}">10000 itens</option>
-            </select>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div>
+                <span style="font-size: 14px; color: #666; margin-right: 10px;">Exibir:</span>
+                <select id="sizeSelect" onchange="mudarTamanho()" class="seletor-pagina">
+                    <option value="50" th:selected="${pageSize == 50}">50 itens</option>
+                    <option value="100" th:selected="${pageSize == 100}">100 itens</option>
+                    <option value="1000" th:selected="${pageSize == 1000}">1000 itens</option>
+                    <option value="10000" th:selected="${pageSize == 10000}">10000 itens</option>
+                </select>
+            </div>
+            
+            <a href="/sistema/sair" class="btn btn-salvar" style="background-color: #c0392b; padding: 0 15px; height: 35px;" title="Desligar Sistema">
+                🛑
+            </a>
         </div>
     </div>
 
